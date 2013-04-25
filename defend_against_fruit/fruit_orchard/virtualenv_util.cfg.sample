@@ -1,0 +1,66 @@
+
+[global]
+# This allows a fixed version of the virtualenv_util package to be used
+# (loaded by the bootstrap script).  If not given, the latest virtualenv_util
+# package will be downloaded the first time a virtual environment is 
+# created.
+# virtualenv_util_version = 0.1
+
+# Use this optional parameter to specify a path to the virtualenv_util 
+# package locally, versus grabbing it from a PyPi repo.
+# Good to use when developing / changing virtualenv_util.
+# virtualenv_util_path = ./virtualenv_util
+
+# Version of Python to use in the virtual environment.  Defaults to using
+# the version used to call the virtualenv_util module. 
+# Note that when using a requirements file (see requirements_file) below, it 
+# is also possible to specify the Python version to use by putting a commented 
+# line of the form:
+# # __python = x.y.z
+# in the requirements file.
+# Anything in the requirements file will override this config file setting.
+# python_version = 2.7.3
+
+# Version of virtualenv to be used when creating virtual environment.
+# Defaults to the latest virtualenv package on the PyPi repo.
+# Note that when using a requirements file (see requirements_file) below, it 
+# is also possible to specify the virtualenv version to use by putting a 
+# commented line of the form:
+# # __virtualenv = x.y.z
+# in the requirements file.
+# Anything in the requirements file will override this config file setting.
+# virtualenv_version = 1.9.1
+
+# Location (URL) where the packages needed should be pulled.
+# If not defined, will attempt to pull from the external PyPI server,
+# which is likely to fail if you depend on any non-public packages.
+# pypi_server = http://myserver/pypi/simple
+
+# Location (URL) of PyPi repo where packages should be pushed (when running
+# a setup.py script that publishes artifacts).  If not given, assumed
+# to be the same as the pypi_server configuration setting. 
+# pypi_push_server = http://myserver/pypi/simple
+
+# Credentials (usually username / password) to be used when pushing
+# to the PyPi repo.  Not needed if not pushing any python packages.
+# pypi_push_credentials = {'username': 'admin', 'password': 'password'}
+
+# Path (can be relative to the config file) where the virtual environment
+# will be created.
+# If not given, the virtual environment will be created in a sudirectory
+# called "_python_virtualenv" in the current directory.  
+# virtualenv_path = ./mysubdirectory/python
+
+# Optional requirements file.  This file will be used to populate the 
+# virtual environment.
+# requirements_file = ./requirements.txt
+
+# Optional installed packages list file.  This file will be written after the 
+# virtual environment is created or updated, and contains the list of all Python
+# packages installed.
+# The format of the file compatible with the "pip install" command.
+# It also contains commented out lines that describe the version of tools
+# that were used to create the virtual environment (i.e. the virtualenv
+# version), the version of Python being used in the virtual environment, and 
+# any other packages necessary but not normally listed.
+# installed_list_file = ./installed_packages.txt

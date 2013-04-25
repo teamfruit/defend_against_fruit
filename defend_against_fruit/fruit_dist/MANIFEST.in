@@ -1,0 +1,5 @@
+include *.txt
+include *.rst
+include *.py
+exclude virtualenv_util_bootstrap*.py
+exclude ci_config

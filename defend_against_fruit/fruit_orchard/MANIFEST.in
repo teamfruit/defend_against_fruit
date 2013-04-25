@@ -1,0 +1,4 @@
+include *.txt
+include *.py
+include *.cfg.sample
+exclude continuous_integration.py

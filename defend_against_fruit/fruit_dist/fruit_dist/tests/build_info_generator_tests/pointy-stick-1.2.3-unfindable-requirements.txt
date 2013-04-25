@@ -1,0 +1,10 @@
+#Comments are fun
+colorama==0.2.4
+mock==1.0.1
+
+#Requirement that can't be found
+unfindablemodule==999.999.999
+
+#####
+#Comments are fun
+nose==1.2.1

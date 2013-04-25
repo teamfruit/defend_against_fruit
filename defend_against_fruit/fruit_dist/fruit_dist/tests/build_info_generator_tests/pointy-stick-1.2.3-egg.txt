@@ -1,0 +1,23 @@
+#Please ensure source control doesn't tweak the line endings on this file,
+#if it does the file checksums will differ from what is expected.
+#In the case of git suppressing line changes for this specific file
+#has been done in .gitattributes
+
+A man named Works,a friend of mine,
+had three red shirts on his line.
+
+What think yee that man he did.
+He bought a goat just for his kid.
+
+That goat got lose one night at nine,
+and ate those shirts right off the line.
+
+This made Works mad and then he swore,
+that he would get that old goats gore.
+
+To the railroad tracks he tied him tight,
+just as the train rolled into sight.
+
+He struggled with all his might and mane,
+coughed up those shirts and flagged the train.
+

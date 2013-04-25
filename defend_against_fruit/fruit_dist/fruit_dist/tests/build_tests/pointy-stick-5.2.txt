@@ -1,0 +1,17 @@
+#Please ensure source control doesn't tweak the line endings on this file,
+#if it does the file checksums will differ from what is expected.
+#In the case of git suppressing line changes for this specific file
+#has been done in .gitattributes
+
+Ladies and gentlemen hobos and tramps,
+bow-legged mosquitoes and not needed ants,
+gather around closely and I'll tell you of something I know not about
+
+Late last night and early in the morn
+two dead boys got into a fight.
+
+Back to back they faced each other,
+drew their swords and shot one another.
+
+A deaf policeman heard the noise,
+and came and killed those two dead boys.
