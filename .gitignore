@@ -1,3 +1,4 @@
+# Binary Python objects
 *.py[cod]
 
 # C extensions
@@ -6,8 +7,10 @@
 # Packages
 *.egg
 *.egg-info
+*.dist-info
+*.whl
 dist
-build
+#build
 eggs
 parts
 bin
@@ -33,3 +36,22 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# IntelliJ/PyCharm projects
+.idea
+*.iml
+
+# VIM swap files
+*.swp
+
+# OS X-Specific
+.DS_Store
+
+# Created during package creation
+version.txt
+
+# Backup files created by some text editors
+*.bak
+
+# Anything in a Python virtualenv
+*/_python_virtualenv/*
