@@ -1,8 +1,10 @@
 Defend Against Fruit
 ====================
 
-*This is an early draft. Thorough documentation on the way!*
+Please [see the wiki](https://github.com/teamfruit/defend_against_fruit/wiki) for project details.
 
+Usage Hints
+-----------
 To run ci:
 
     > ci
