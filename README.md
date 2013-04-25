@@ -4,9 +4,11 @@ Defend Against Fruit
 *This is an early draft. Thorough documentation on the way!*
 
 To run ci:
+
     > ci
 
 To run ci with publishing:
+
     > set BUILD_NAME=foobar
     > set MAJOR_VERSION=1
     > set MINOR_VERSION=1
