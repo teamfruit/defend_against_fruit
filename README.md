@@ -27,6 +27,5 @@ the same version of distribute used by virtualenv must be found in Artifactory.
 At present this is distribute-0.6.34.tar.gz
 
 
-"A table, a chair, a bowl of fruit, and a violin; what else does a man need to be happy?"
---Albert Einstein
+"A table, a chair, a bowl of fruit, and a violin; what else does a man need to be happy?" — Albert Einstein
 
