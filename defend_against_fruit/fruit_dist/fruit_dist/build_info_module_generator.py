@@ -2,7 +2,7 @@ import json
 import os
 import pkg_resources
 from pip.exceptions import DistributionNotFound
-from build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_FREEZE, PYTHON_GROUP_ID
+from build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_WHEEL, PYTHON_SPHINX, PYTHON_RPM, PYTHON_FREEZE, PYTHON_GROUP_ID
 from build.id import Id
 from build.module import Module
 from file_management import write_to_file
@@ -71,6 +71,10 @@ class BuildInfoModuleGenerator(object):
             'bdist': PYTHON_BDIST,
             'bdist_dumb': PYTHON_BDIST,
             'bdist_egg': PYTHON_EGG,
+            'bdist_wheel': PYTHON_WHEEL,
+            'bdist_rpm': PYTHON_RPM,            
+            'build_sphinx': PYTHON_SPHINX,            
+            'build_sphinx_zip': PYTHON_SPHINX,
             'freeze': PYTHON_FREEZE
         }
 
