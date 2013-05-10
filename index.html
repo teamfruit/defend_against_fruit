@@ -32,10 +32,10 @@
 
 <p>Defend Against Fruit is focused on providing a pragmatic, continuous deployment style build system for Python. Current Python build systems do not properly account for the needs of effective continuous deployment. This package extends the Python tooling to add the missing pieces.</p>
 
-<p>With an eye to agile development principals, we want a build system which satisfies the following goals:</p>
+<p>With an eye to agile development principles and <a href="https://github.com/teamfruit/defend_against_fruit/wiki#fast-feedback-is-critical">fast-feedback</a>, we want a build system which satisfies the following goals:</p>
 
 <ul>
-<li>The code should always be in a shippable state.</li>
+<li>Every SCM change-set committed should result in a potentially shippable release candidate.</li>
 <li>When a defect is introduced, we want to immediately detect and isolate the offending SCM change-set. This is true even if the defect was introduced into a library we depend upon.</li>
 <li>Library management should be so easy as to never impede refactoring, even in multi-component architectures</li>
 </ul><p>For in-depth documentation with lots of pretty diagrams, <a href="https://github.com/teamfruit/defend_against_fruit/wiki">take a look at the wiki</a>.</p>
