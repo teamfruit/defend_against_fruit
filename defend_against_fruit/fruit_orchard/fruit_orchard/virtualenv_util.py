@@ -29,7 +29,11 @@ def get_python_version_string():
     return '{:d}.{:d}.{:d}'.format(sys.version_info[0], sys.version_info[1], sys.version_info[2])
 
 
-def get_options_from_config_file_and_args(config_file_path=None):
+def get_options_from_config_file_and_args(config_file_path=None,options_overrides={}):
+
+    if config_file_path is None and options_overrides.get('cfg_file', None):
+        config_file_path = options_overrides['cfg_file'] 
+
     if config_file_path is not None:
         config = configparser.SafeConfigParser()
         config.read([config_file_path])
@@ -42,11 +46,16 @@ def get_options_from_config_file_and_args(config_file_path=None):
     parser.add_argument('--run', default=None)
     parser.add_argument('--script', default=None)
     parser.add_argument('--requirements_file', '-r', default=None)
+    parser.add_argument('--requirement_specifiers', default=None)
     parser.add_argument('--installed_list_file', default=None)
     parser.add_argument('--environment_variables', default={})
-    parser.add_argument('--pypi_server', default='http://pypi.python.org/simple')
+    parser.add_argument('--pypi_pull_server', default='http://pypi.python.org/simple')
+    parser.add_argument('--pypi_pull_repo_id', default=None)
     parser.add_argument('--pypi_push_server', default=None)
-    parser.add_argument('--pypi_push_credentials', default=None)
+    parser.add_argument('--pypi_push_username', default=None)
+    parser.add_argument('--pypi_push_password', default=None)
+    parser.add_argument('--pypi_push_repo_id', default=None)
+    parser.add_argument('--pypi_server_base', default=None)
     parser.add_argument('--virtualenv_path', default='./_python_virtualenv')
     parser.add_argument('--virtualenv_version', default=None)
     parser.add_argument('--python_version', default=get_python_version_string())
@@ -57,6 +66,9 @@ def get_options_from_config_file_and_args(config_file_path=None):
 
     if options.requirements_file is None:
         options.requirements_file = config_file_global_settings.get('', None)
+
+    for key in options_overrides:
+        setattr(options, key, options_overrides[key]) 
 
     update_path_options(options)
 
@@ -136,6 +148,8 @@ def create_virtualenv(
         # the PyPI server for the latest version.    
         if virtualenv_version is None:
             virtualenv_url_dir = pypi_server + '/' + virtualenv_package_name
+            
+            print virtualenv_url_dir
 
             f_remote = urllib.urlopen(virtualenv_url_dir)
             index = f_remote.read()
@@ -325,8 +339,8 @@ def read_and_update_environment_variables(virtualenv_path):
         os.environ[name.upper()] = environment_variables[name]
 
 
-def main(config_file_path=None):
-    options = get_options_from_config_file_and_args(config_file_path)
+def main(config_file_path=None, options_overrides={}):
+    options = get_options_from_config_file_and_args(config_file_path, options_overrides)
 
     # Special case of "nested" arguments when doing a run or script.
     # Can pass in '--veclean' as an argument inside of --run or --script,
@@ -346,7 +360,7 @@ def main(config_file_path=None):
         # Does the virtualenv already exist?  If so, we just check to make 
         # sure it is up to date.
         if os.path.isfile(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe')) and not options.clean:
-        # Check the version of Python in the virtualenv.  We cannot
+            # Check the version of Python in the virtualenv.  We cannot
             # update it after the virtualenv is created (we have to destroy and
             # recreate this virtualenv), so just show an error.
             pass
@@ -360,7 +374,7 @@ def main(config_file_path=None):
 
         read_and_update_environment_variables(options.virtualenv_path)
 
-        # Run PIP in the virtual environment to install / update the required
+        # Run pip in the virtual environment to install / update the required
         # tool packages listed in the requirements.txt file.
         if options.requirements_file:
             p = subprocess.Popen(
@@ -368,7 +382,24 @@ def main(config_file_path=None):
                                                       options.requirements_file))
             p.wait()
 
-            # Append the Python version used to the list of installed tools.
+            if p.returncode != 0:
+                raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirements file {})'.format(options.requirements_file)) 
+
+        # If additional requirements were specified as a list of requirements
+        # specifiers separated by commas, install each package individually.
+        if options.requirement_specifiers:
+            for requirement in options.requirement_specifiers.split(','):
+                p = subprocess.Popen(
+                    '"{}" install --upgrade {}'.format(os.path.join(options.virtualenv_path, 'Scripts', 'pip'),
+                                                       requirement))
+                                                       
+                p.wait()                                                       
+                
+                if p.returncode != 0:
+                    raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirement {})'.format(requirement)) 
+                              
+
+        # Append the Python version used to the list of installed tools.
         if options.installed_list_file:
             home_dir = os.path.join(options.virtualenv_path, 'home')
             home_versions_file_path = os.path.join(home_dir, 'virtualenv_versions.txt')
