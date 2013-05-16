@@ -1,6 +1,10 @@
 import argparse
+from collections import namedtuple
 import json
 import logging
+import os
+import sys
+import textwrap
 from fruit_dist.artifactory.artifactory_rest import publish_build_info, build_promote
 from fruit_dist.build.agent import Agent
 from fruit_dist.build.build_info import BuildInfo
@@ -12,6 +16,12 @@ from fruit_dist.build.promotion_request import PromotionRequest
 from fruit_dist.build_info_utils import build_info_to_text
 
 
+_OPTION_NAMES = {
+    'base_url': 'PYPI_SERVER_BASE',
+    'username': 'PYPI_PUSH_USERNAME',
+    'password': 'PYPI_PUSH_PASSWORD'}
+
+
 def execute():
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -20,18 +30,59 @@ def execute():
     sub_command_function(args)
 
 
+EnvTemplateValues = namedtuple('EnvTemplateValues', _OPTION_NAMES.keys())
+
+
+def _read_environment_for_defaults():
+    env_values = {}
+
+    for opt, env in _OPTION_NAMES.iteritems():
+        env_values[opt] = os.environ.get(env, None)
+
+    return EnvTemplateValues(**env_values)
+
+
+def _parse_and_validate(parser, command_line_args):
+    env_template_values = _read_environment_for_defaults()
+
+    parsed_args = parser.parse_args(command_line_args)
+
+    def handle_arg(key_name):
+        opt_value = getattr(parsed_args, key_name, None)
+        if not opt_value:
+            opt_value = getattr(env_template_values, key_name, None)
+
+        if not opt_value:
+            msg = (
+                "Error: {key_name} value must be provided.\n\n"
+                "This can be done using the relevant command line argument\n"
+                "or the corresponding environment variable: {env_name}\n\n{usage}".format(
+                    key_name=key_name,
+                    env_name=_OPTION_NAMES[key_name],
+                    usage=parser.format_usage()))
+            print msg
+            sys.exit(1)
+
+        setattr(parsed_args, key_name, opt_value)
+
+    for key_name in _OPTION_NAMES:
+        handle_arg(key_name=key_name)
+
+    return parsed_args
+
+
 def _parse_args(args=None):
     parser = argparse.ArgumentParser(
-        description='Integration test utility for testing Artifactory Rest API calls.')
+        description='Integration test utility for testing Artifactory Rest API calls.',
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('--username', action='store', default="admin", help='Artifactory username')
-    parser.add_argument('--password', action='store', default="password", help='Artifactory password')
-    parser.add_argument(
-        '--base_url',
-        action='store',
-        required=True,
-        help='Artifactory password'
-    )
+    parser.epilog = textwrap.dedent('''
+            To see options for a subcommand:
+                > python {} <subcommand> --help'''.format(parser.prog))
+
+    parser.add_argument('--username', help='Artifactory username')
+    parser.add_argument('--password', help='Artifactory password')
+    parser.add_argument('--base-url', help='Artifactory base URL')
     parser.add_argument('--ignore-cert-errors', action='store_true', default=False, help='Verify certificate')
 
     subparsers = parser.add_subparsers(title="subcommands", description="Various subcommands for testing")
@@ -47,7 +98,7 @@ def _parse_args(args=None):
     parser_build_info.add_argument('--number', action='store', required=True, help="build number to promote")
     parser_build_info.set_defaults(func=_build_promote)
 
-    return parser.parse_args(args)
+    return _parse_and_validate(parser=parser, command_line_args=args)
 
 
 def _build_promote(args):
