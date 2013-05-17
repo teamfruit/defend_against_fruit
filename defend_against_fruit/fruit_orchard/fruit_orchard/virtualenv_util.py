@@ -1,4 +1,5 @@
 import argparse
+import glob
 import os
 import re
 import shutil
@@ -8,6 +9,10 @@ import sys
 import tarfile
 import tempfile
 from textwrap import dedent
+
+VIRTUALENV_PACKAGE_NAME = 'virtualenv'
+VIRTUALENV_BOOTSTRAP_NAME = 'virtualenv-bootstrap'
+VIRTUALENV_UTIL_PACKAGE_NAME = 'fruit_orchard'
 
 if sys.version_info >= (3, 0):
     # noinspection PyUnresolvedReferences
@@ -22,7 +27,7 @@ else:
 
 
 def version():
-    return '9.9.9'
+    return open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'version.txt'), 'r').read()
 
 
 def get_python_version_string():
@@ -59,9 +64,20 @@ def get_options_from_config_file_and_args(config_file_path=None,options_override
     parser.add_argument('--virtualenv_path', default='./_python_virtualenv')
     parser.add_argument('--virtualenv_version', default=None)
     parser.add_argument('--python_version', default=get_python_version_string())
-
+    parser.add_argument('--pip_install_args', default='--upgrade')
+    parser.add_argument('--download_cache_dir', default=None)
+    # Force type=bool since the config file will be a string
+    parser.add_argument('--sitepkg_install', type=int, default=0)
+    
     parser.set_defaults(**config_file_global_settings)
-    options = parser.parse_args()
+    
+    if options_overrides.get('dont_parse_argv', False):
+        # Don't actually parse anything from the command line if this
+        # option override is set.
+        options = parser.parse_args([])
+    else:
+        options = parser.parse_args()
+    
     options.cfg_file = config_file_path
 
     if options.requirements_file is None:
@@ -79,7 +95,7 @@ def update_path_options(options):
     path_options = ['virtualenv_path', 'requirements_file', 'installed_list_file']
 
     # If a config file is specified, paths should be relative to that. Otherwise, paths should be relative to this file.
-    root_path = os.path.dirname(os.path.abspath(options.cfg_file) if options.cfg_file else os.path.abspath(__file__))
+    root_path = os.path.dirname(os.path.abspath(options.cfg_file)) if options.cfg_file else os.path.dirname(os.path.abspath(__file__))
 
     for path_option in path_options:
         if getattr(options, path_option, None) is not None:
@@ -92,7 +108,7 @@ def update_path_options(options):
                 # absolute path
                 setattr(options, path_option, os.path.abspath(value))
 
-
+# TODO: Is this function ever called?
 def parse_requirements_file(requirements_file_path, options):
     if not os.path.isfile(requirements_file_path):
         raise RuntimeError('Requirements file {} is missing!'.format(requirements_file_path))
@@ -127,29 +143,108 @@ def handle_remove_readonly(func, path, exc):
     else:
         raise
 
+def _install_req(tarball):
+    '''Used to install distribute or pip to site-packages from the given 
+    source dist tarball.
+    '''
+    cwd = os.getcwd()
+    # Copy to a temp directory 
+    d = tempfile.mkdtemp()
+    t = None
+    try:
+        # Unpack to the temp dir
+        t = tarfile.open(tarball,'r:gz')
+        t.extractall(d)
+        # Change to extracted directory, and install (expect only 1 directory)
+        extract_dir = os.listdir(d)[0]
+        unpack_dir = os.path.join(d,extract_dir)
+        os.chdir(unpack_dir)
+        # Make sure setup.py exists
+        if not os.path.isfile('setup.py'):
+            raise RuntimeError('Could not find setup.py for {}'.format(tarball))
+        # Finally, run the installer
+        print 'Running setup.py for {}'.format(tarball)
+        with open(os.devnull, 'w') as tempf:
+            subprocess.check_call([sys.executable,'setup.py','install'],
+                stdout=tempf)
+    finally:
+        if t: 
+            t.close()
+        os.chdir(cwd)
+        shutil.rmtree(d)
 
-def create_virtualenv(
-        virtualenv_path=None,
-        virtualenv_version=None,
-        pypi_server=None,
-        virtualenv_package_name='virtualenv'):
-    print('Creating new virtual environment at {}...'.format(virtualenv_path))
+def do_sitepkg_install(options):
+    '''Install user specifications to local site-packages.
+    '''
+    # Set this to None in case it fails to get set in the try block
+    temp_dir = None
+    try:
+        # Get the virtualenv package which has distribute and pip that we 
+        # will install to site-packages
+        temp_dir = _stage_virtualenv(options, install_virtualenv=False)
+        
+        # Use the bootstrap virtualenv to install distribute and pip to 
+        # site-packages. We expect those packages to be in virtualenv_support.
+        tool_path = os.path.join(temp_dir, 'virtualenv_support')
+        distribute_src = glob.glob(os.path.join(
+            temp_dir,'virtualenv-*/virtualenv_support/distribute-*.tar.gz'))
+        pip_src = glob.glob(os.path.join(
+            temp_dir,'virtualenv-*/virtualenv_support/pip-*.tar.gz'))
+        # Expect only one to be there
+        if len(distribute_src) != 1 or len(pip_src) != 1:
+            raise RuntimeError('Expect exactly one version of distribute and '
+                'pip in virtualenv_support. Found {}, {}'.format(
+                    distribute_src, pip_src))
+        # Install them both to site-packages
+        _install_req(distribute_src[0])
+        _install_req(pip_src[0])
+    finally:
+        if temp_dir:
+            # Clean up the temp. virtual environment. 
+            pass #_cleanup_virtualenv(temp_dir)
+    
 
+def do_virtualenv_install(options):
+    print('Creating new virtual environment at {}...'.format(options.virtualenv_path))
+    
     # Remove any old virtualenv that may be sitting in the target virtualenv 
     # directory.
-    if os.path.isdir(virtualenv_path):
-        shutil.rmtree(virtualenv_path, ignore_errors=False, onerror=handle_remove_readonly)
-
-    # Create a temporary directory.
-    temp_dir = tempfile.mkdtemp()
-
+    if os.path.isdir(options.virtualenv_path):
+        shutil.rmtree(options.virtualenv_path, ignore_errors=False, onerror=handle_remove_readonly)
+    
+    # Set this to None in case it fails to get set in the try block
+    temp_dir = None
     try:
-        # Was a fixed virtualenv_util version specified?  If not, we need to check
+        # Stage a virtual environment that will perform the real install
+        temp_dir = _stage_virtualenv(options)
+        bootstrap_vm_dir = os.path.join(temp_dir, VIRTUALENV_BOOTSTRAP_NAME)
+        
+        # Use the bootstrap virtualenv to create the "real" virtualenv in the
+        # view at the right location. 
+        # We have to be careful to get the python version correct this time.  
+        subprocess.check_call([
+            os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'),
+            '--distribute', options.virtualenv_path])
+    finally:
+        if temp_dir:
+            # Clean up the temp. virtual environment. 
+            _cleanup_virtualenv(temp_dir)
+
+
+def _stage_virtualenv(options, install_virtualenv=True):
+    '''Creates staging virtual environment in order to help with the "real"
+    installation. Returns path to staged virtual env. If install_virtualenv is
+    False, then unpack the virtual env. package, but don't actually create 
+    a virtual environment.
+    '''
+    # Create a temporary directory to put the virtual env. in.
+    temp_dir = tempfile.mkdtemp()
+    try:
+        # Was a fixed virtualenv version specified?  If not, we need to check
         # the PyPI server for the latest version.    
-        if virtualenv_version is None:
-            virtualenv_url_dir = pypi_server + '/' + virtualenv_package_name
-            
-            print virtualenv_url_dir
+        if options.virtualenv_version is None:
+            virtualenv_url_dir = (options.pypi_pull_server + '/' + 
+                options.virtualenv_package_name)
 
             f_remote = urllib.urlopen(virtualenv_url_dir)
             index = f_remote.read()
@@ -163,7 +258,7 @@ def create_virtualenv(
             # and end with the package extension.
             versions = []
             for hyperlink in hyperlinks:
-                if hyperlink.startswith(virtualenv_package_name + '-') and hyperlink.endswith('.tar.gz'):
+                if hyperlink.startswith(options.virtualenv_package_name + '-') and hyperlink.endswith('.tar.gz'):
                     version = hyperlink.split('-')[-1].replace('.tar.gz', '')
                     versions.append(version)
 
@@ -172,58 +267,68 @@ def create_virtualenv(
                     # encounter.  This could be enhanced.
             versions.sort()
 
-            # Select the highest version.        
-            virtualenv_version = versions[-1]
+            # Select the highest version and change our options container to 
+            # reflect the version.  
+            options.virtualenv_version = versions[-1]
 
-            # Attempt to locate and download a virtualenv package of the version
-            # specified on the artifact server.
-        virtualenv_tar_filename = '{}-{}.tar.gz'.format(virtualenv_package_name, virtualenv_version)
-        virtualenv_url = '/'.join([pypi_server, virtualenv_package_name, virtualenv_tar_filename])
+        # Attempt to locate and download a virtualenv package of the version
+        # specified on the artifact server.
+        virtualenv_tar_filename = '{}-{}.tar.gz'.format(options.virtualenv_package_name, options.virtualenv_version)
+        virtualenv_url = '/'.join([options.pypi_pull_server, options.virtualenv_package_name, virtualenv_tar_filename])
 
         f_remote = urllib.urlopen(virtualenv_url)
         f_local = open(os.path.join(temp_dir, virtualenv_tar_filename), 'wb')
         f_local.write(f_remote.read())
         f_local.close()
-
+        
+        if options.download_cache_dir:
+            shutil.copy2(os.path.join(temp_dir, virtualenv_tar_filename), options.download_cache_dir)
+        
         # Unpack the tarball to the temporary directory.
         tarf = tarfile.open(os.path.join(temp_dir, virtualenv_tar_filename), 'r:gz')
         tarf.extractall(temp_dir)
         tarf.close()
         unpacked_tar_directory = os.path.join(temp_dir, virtualenv_tar_filename.replace('.tar.gz', ''))
-
+        bootstrap_vm_directory = os.path.join(temp_dir, VIRTUALENV_BOOTSTRAP_NAME)
         # Create the bootstrap virtualenv in the temporary directory using the 
         # current python executable we are using plus the virtualenv stuff we 
         # unpacked.
-        bootstrap_vm_directory = os.path.join(temp_dir, 'virtualenv-bootstrap')
-        os.system(
-            '"{}" {} --distribute {}'.format(
-                sys.executable, os.path.join(unpacked_tar_directory, 'virtualenv.py'), bootstrap_vm_directory))
+        if install_virtualenv:
+            subprocess.check_call([
+                sys.executable, 
+                os.path.join(unpacked_tar_directory, 'virtualenv.py'), 
+                '--distribute', 
+                bootstrap_vm_directory])
 
-        # Install virtualenv into this bootstrap environment using pip, pointing
-        # at the right server.
-        os.system('"{}" install {}=={} -i {}'.format(
-            os.path.join(bootstrap_vm_directory, 'Scripts', 'pip'),
-            virtualenv_package_name,
-            virtualenv_version,
-            pypi_server))
-
-        # Use the bootstrap virtualenv to create the "real" virtualenv in the
-        # view at the right location. 
-        # We have to be careful to get the python version correct this time.    
-        os.system('"{}" --distribute {}'.format(
-            os.path.join(bootstrap_vm_directory, 'Scripts', 'virtualenv'),
-            virtualenv_path))
-    finally:
-        # Always clean up our temporary directory litter.
-        shutil.rmtree(temp_dir, ignore_errors=False, onerror=handle_remove_readonly)
-
-    # Return the virtualenv path and virtualenv version used.
-    return (virtualenv_path, virtualenv_version)
+            # Install virtualenv into this bootstrap environment using pip, pointing
+            # at the right server.
+            subprocess.check_call([
+                os.path.join(bootstrap_vm_directory, 'Scripts', 'pip'),
+                'install',
+                '{}=={}'.format(options.virtualenv_package_name, 
+                                options.virtualenv_version),
+                '-i', options.pypi_pull_server])
+        
+    except Exception:
+        # Even though the calling code is normally responsible for cleaning
+        # up the temp dir, if an exception occurs, we do it here because we 
+        # won't be able to return the temp_dir to the caller
+        _cleanup_virtualenv(temp_dir)
+        raise
+    
+    # Return the bootstrap vm dir that was created
+    return temp_dir
 
 
-def _write_config_files(home_dir, options, virtualenv_util_cfg):
-    """Write config files used by PIP and distutils"""
+def _cleanup_virtualenv(temp_dir):
+    '''Cleans up the temp virtual folder and environment created by 
+    _stage_virtualenv().
+    '''
+    print('Cleaning up bootstrap environment')
+    shutil.rmtree(temp_dir, ignore_errors=False, onerror=handle_remove_readonly)
+        
 
+def _write_pip_config(home_dir, options):
     virtualenv_util = os.path.basename(__file__)
 
     ################################
@@ -240,11 +345,15 @@ def _write_config_files(home_dir, options, virtualenv_util_cfg):
 
     pip_ini_contents = pip_ini.format(
         virtualenv_util=virtualenv_util,
-        virtualenv_util_cfg=virtualenv_util_cfg,
+        virtualenv_util_cfg=options.cfg_file,
         index_url=options.pypi_pull_server)
 
     _write_config_file(home_dir=home_dir, home_file_name='pip\pip.ini', contents=pip_ini_contents)
 
+
+def _write_pydistutils_cfg(home_dir, options):
+    virtualenv_util = os.path.basename(__file__)
+    
     ################################
     #Create pydistutils.cfg
     pydistutils_cfg = dedent('''
@@ -264,7 +373,7 @@ def _write_config_files(home_dir, options, virtualenv_util_cfg):
 
     pydistutils_cfg_contents = pydistutils_cfg.format(
         virtualenv_util=virtualenv_util,
-        virtualenv_util_cfg=virtualenv_util_cfg,
+        virtualenv_util_cfg=options.cfg_file,
         index_url=options.pypi_pull_server,
         repo_base_url=options.pypi_server_base,
         repo_push_id=options.pypi_push_repo_id,
@@ -273,17 +382,22 @@ def _write_config_files(home_dir, options, virtualenv_util_cfg):
         password=options.pypi_push_password)
 
     _write_config_file(home_dir=home_dir, home_file_name='pydistutils.cfg', contents=pydistutils_cfg_contents)
+    
 
+def _get_implicit_versions_string(options):
+    s = '# __python=={}\n'.format(get_python_version_string())
+    s += '# __{}=={}\n'.format(options.virtualenv_package_name, options.virtualenv_version)
+    s += '# __{}=={}\n'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version())
 
-def _write_version_file(home_dir, virtual_env_version):
+    return s
+
+def _write_version_file(home_dir, options):
     """Write out some package version information to a text file in the home directory."""
 
     home_versions_file_path = os.path.join(home_dir, 'virtualenv_versions.txt')
-    with open(home_versions_file_path, 'w') as f:
-        f.write('# __python=={}\n'.format(get_python_version_string()))
-        f.write('# __virtualenv=={}\n'.format(virtual_env_version))
-        f.write('# __virtualenv_util=={}\n'.format(version()))
-
+    f = open(home_versions_file_path, 'w')
+    f.write(_get_implicit_versions_string(options))
+    f.close()
 
 def _create_env_file(home_dir, environment_variables):
     """Create a file containing all the environment variable settings that
@@ -299,18 +413,28 @@ def _create_env_file(home_dir, environment_variables):
                 f.write('{}={}\n'.format(name, environment_variables[name]))
 
 
-def _populate_home_dir(virtualenv_path, options, config_file_path):
-    home_dir = os.path.join(virtualenv_path, 'home')
-    options.environment_variables['HOME'] = home_dir
-
-    if not os.path.isdir(home_dir):
-        os.mkdir(home_dir)
-
-    _write_config_files(home_dir, options, config_file_path)
-
-    _create_env_file(home_dir=home_dir, environment_variables=options.environment_variables)
-
-    _write_version_file(home_dir=home_dir, virtual_env_version=options.virtualenv_version)
+def _populate_home_dir(options):
+    if options.sitepkg_install:
+        # For a sitepkg install, we need to write the config files in the 
+        # the correct system locations.
+        # TODO: We could write to the user's %HOME% env variable, but it's a pain 
+        # to get it to persist. We've done this in ratools using the _winreg and
+        # win32gui libraries, but win32gui is a third party module that I'm not
+        # sure we want to try and install
+        _write_pip_config(os.path.expanduser('~'), options)
+        _write_pydistutils_cfg(os.path.join(sys.prefix,
+            'Lib/distutils/pydistutils.cfg'), options)
+    else:
+        # For a virtual env. install, we can neatly create a home directory and
+        # put the config files there.
+        home_dir = os.path.join(options.virtualenv_path, 'home')
+        options.environment_variables['HOME'] = home_dir
+        if not os.path.isdir(home_dir):
+            os.mkdir(home_dir)
+        _write_pip_config(home_dir,options)
+        _write_pydistutils_cfg(home_dir,options)
+        _create_env_file(home_dir=home_dir, environment_variables=options.environment_variables)
+        _write_version_file(home_dir=home_dir, options=options)
 
 
 def _write_config_file(home_dir, home_file_name, contents):
@@ -319,13 +443,32 @@ def _write_config_file(home_dir, home_file_name, contents):
     if not os.path.isdir(os.path.dirname(home_file_path)):
         os.makedirs(os.path.dirname(home_file_path))
 
-    if not os.path.isfile(home_file_path):
-        with open(home_file_path, 'w') as f:
-            f.write(contents)
+    # TODO: Don't we want to overwrite this file? For now, I changed it do 
+    # overwrite. Not sure if/how we want to persist user changes, unless we 
+    # just write parts of the file we're concerned about.
+    #if not os.path.isfile(home_file_path):
+    with open(home_file_path, 'w') as f:
+        f.write(contents)
+        
+def _get_pip_install_args(options):
+    args = options.pip_install_args        
+
+    if options.download_cache_dir:
+        args += ' --download-cache="{}"'.format(options.download_cache_dir)
+    
+    return args
+    
+def _fix_download_cache_dir_filenames(options):
+    for item in os.listdir(options.download_cache_dir):
+        #print item
+        if os.path.isfile(os.path.join(options.download_cache_dir, item)) and '%2F' in item:
+            #print item.split('%2F')[-1]            
+            os.rename(os.path.join(options.download_cache_dir, item),
+                      os.path.join(options.download_cache_dir, item.split('%2F')[-1]))                                    
 
 
-def read_and_update_environment_variables(virtualenv_path):
-    home_dir = os.path.join(virtualenv_path, 'home')
+def read_and_update_environment_variables(options):
+    home_dir = os.path.join(options.virtualenv_path, 'home')
     home_env_file_path = os.path.join(home_dir, '.env')
 
     if not os.path.isfile(home_env_file_path):
@@ -350,74 +493,83 @@ def main(config_file_path=None, options_overrides={}):
         options.clean = True
         options.run = options.run.replace('--veclean', '')
 
+    # Set virtualenv package name to a default. Don't currently see a need
+    # for this to be configurable
+    options.virtualenv_package_name = VIRTUALENV_PACKAGE_NAME
+    
     # If we are running from INSIDE a virtualenv already, assume that the 
     # virtualenv already exists and we only need to update it.
     if hasattr(sys, 'real_prefix'):
-        # Check that the version of Python in the virtualenv being used is
-        # correct.  We cannot update this, so error if it is incorrect.
-        pass
+        if options.sitepkg_install:
+            raise RuntimeError(
+                'Cannot install to site-packages from a virtual environment')
+        # Otherwise, check that the version of Python in the virtualenv being 
+        # used is correct.  We cannot update this, so error if it is incorrect.
     else:
+        # If the user wants a sitepkg install...
+        if options.sitepkg_install:
+            do_sitepkg_install(options)
+        # Otherwise, we're giving them a virtualenv. 
         # Does the virtualenv already exist?  If so, we just check to make 
         # sure it is up to date.
-        if os.path.isfile(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe')) and not options.clean:
+        elif os.path.isfile(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe')) and not options.clean:
             # Check the version of Python in the virtualenv.  We cannot
             # update it after the virtualenv is created (we have to destroy and
             # recreate this virtualenv), so just show an error.
             pass
         else:
-            options.virtualenv_path, options.virtualenv_version = create_virtualenv(
-                options.virtualenv_path,
-                options.virtualenv_version,
-                options.pypi_pull_server)
+            do_virtualenv_install(options)
+        
+        # Write config files
+        _populate_home_dir(options)
 
-            _populate_home_dir(options.virtualenv_path, options, config_file_path)
+        if not options.sitepkg_install:
+            read_and_update_environment_variables(options)
 
-        read_and_update_environment_variables(options.virtualenv_path)
+        # Choose the pip tool location based on if this is a virtualenv install
+        # or a site-packages install            
+        piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
+        if options.sitepkg_install:
+            piptool = os.path.join(sys.prefix, 'Scripts', 'pip')            
 
-        # Run pip in the virtual environment to install / update the required
-        # tool packages listed in the requirements.txt file.
-        if options.requirements_file:
-            p = subprocess.Popen(
-                '"{}" install -r {} --upgrade'.format(os.path.join(options.virtualenv_path, 'Scripts', 'pip'),
-                                                      options.requirements_file))
-            p.wait()
-
-            if p.returncode != 0:
-                raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirements file {})'.format(options.requirements_file)) 
-
-        # If additional requirements were specified as a list of requirements
+        # If requirements were specified as a list of requirements
         # specifiers separated by commas, install each package individually.
         if options.requirement_specifiers:
             for requirement in options.requirement_specifiers.split(','):
                 p = subprocess.Popen(
-                    '"{}" install --upgrade {}'.format(os.path.join(options.virtualenv_path, 'Scripts', 'pip'),
-                                                       requirement))
-                                                       
+                    '"{}" install {} {}'.format(piptool,
+                                                _get_pip_install_args(options),
+                                                requirement))                                                       
                 p.wait()                                                       
                 
                 if p.returncode != 0:
                     raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirement {})'.format(requirement)) 
-                              
+            
+        # Run pip to install / update the required
+        # tool packages listed in the requirements.txt file.
+        if options.requirements_file:
+            p = subprocess.Popen(
+                '"{}" install {} -r {}'.format(piptool,
+                                               _get_pip_install_args(options),
+                                               options.requirements_file))
+            p.wait()
 
-        # Append the Python version used to the list of installed tools.
+            if p.returncode != 0:
+                raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirements file {})'.format(options.requirements_file))                               
+
         if options.installed_list_file:
-            home_dir = os.path.join(options.virtualenv_path, 'home')
-            home_versions_file_path = os.path.join(home_dir, 'virtualenv_versions.txt')
-
-            f = open(options.installed_list_file, 'w')
-
-            if os.path.isfile(home_versions_file_path):
-                f.write(open(home_versions_file_path, 'r').read())
-            else:
-                f.write('# __python=={}\n'.format(get_python_version_string()))
-
-            f.close()
-
+        
             # Output the list of installed tools to a text file. 
-            os.system(
-                '{} freeze >> {}'.format(os.path.join(options.virtualenv_path, 'Scripts', 'pip'),
-                                         options.installed_list_file))
+            output = subprocess.check_output([piptool, 'freeze'])
+            f = open(options.installed_list_file, 'w')
+            f.write(_get_implicit_versions_string(options))
+            f.write(output)
+            f.close()
+            
+        if options.download_cache_dir:
+            _fix_download_cache_dir_filenames(options)    
 
+    # TODO: Add support for sitepkg install?
     if options.run is not None:
         # Run the file using the Python executable in the virtualenv.
         p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe') + ' ' + options.run)
