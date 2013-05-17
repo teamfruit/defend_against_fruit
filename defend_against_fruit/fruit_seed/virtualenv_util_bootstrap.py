@@ -66,28 +66,32 @@ def _get_newest_package_version(pypi_server):
     return virtualenv_util_version   
 
 
-def _download_package(pypi_server, virtualenv_util_version, bootstrap_directory):
+def _download_package(pypi_server, virtualenv_util_version, bootstrap_directory, download_cache_dir):
 
     # Download the package source tar from the server.
     virtualenv_util_tar_filename = '{}-{}{}'.format(VIRTUALENV_UTIL_PACKAGE_NAME, virtualenv_util_version, VIRTUALENV_UTIL_PACKAGE_FILE_EXTENSION)
     virtualenv_util_url = '/'.join([pypi_server, VIRTUALENV_UTIL_PACKAGE_NAME, virtualenv_util_tar_filename])
 
     f_remote = urllib.urlopen(virtualenv_util_url)
-    f_local = open(os.path.join(ROOT_PATH, virtualenv_util_tar_filename), 'wb')
+    f_local_filename = os.path.join(ROOT_PATH, virtualenv_util_tar_filename)
+    if download_cache_dir:
+        f_local_filename = os.path.join(download_cache_dir, virtualenv_util_tar_filename)        
+    f_local = open(f_local_filename, 'wb')
     f_local.write(f_remote.read())
     f_local.close()
     f_remote.close()
 
     # Unpack the tarball to the current directory.
-    tarf = tarfile.open(os.path.join(ROOT_PATH, virtualenv_util_tar_filename), 'r:gz')
+    tarf = tarfile.open(f_local_filename, 'r:gz')
     tarf.extractall(ROOT_PATH)
-    tarf.close()
+    tarf.close()        
 
     # Remove the tarball from the current directory.
-    try:
-        os.unlink(os.path.join(ROOT_PATH, virtualenv_util_tar_filename))
-    except:
-        pass
+    if not download_cache_dir:
+        try:
+            os.unlink(f_local_filename)
+        except:
+            pass
 
     virtualenv_util_path = os.path.join(ROOT_PATH, '{}-{}'.format(VIRTUALENV_UTIL_PACKAGE_NAME, virtualenv_util_version), VIRTUALENV_UTIL_PACKAGE_NAME)
     
@@ -114,11 +118,18 @@ def _get_options(config_file_path=None, options_overrides={}):
     parser.add_argument('--virtualenv_util_version', default=None)
     parser.add_argument('--virtualenv_util_path', default=None)
     parser.add_argument('--bootstrap_dir', default=ROOT_PATH)
-    parser.add_argument('--cfg_file', default=None)   
+    parser.add_argument('--cfg_file', default=None)
+    parser.add_argument('--download_cache_dir', default=None)   
     
     parser.set_defaults(**config_file_global_settings)
-    options, remaining_args = parser.parse_known_args(sys.argv[1:])
-    sys.argv = [sys.argv[0]] + remaining_args
+    
+    if options_overrides.get('dont_parse_argv', False):
+        # Don't actually parse anything from the command line if this
+        # option override is set.
+        options, remaining_args = parser.parse_known_args([])    
+    else:
+        options, remaining_args = parser.parse_known_args(sys.argv[1:])
+        sys.argv = [sys.argv[0]] + remaining_args
     
     for key in options_overrides:
         setattr(options, key, options_overrides[key]) 
@@ -183,12 +194,12 @@ def main(config_file_path=None, options_overrides={}, verbose=True):
         if verbose:    
             print('Downloading {} package version {}...'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version))
         
-        virtualenv_util_path = _download_package(pypi_server, version, options.bootstrap_dir) 
+        virtualenv_util_path = _download_package(pypi_server, version, options.bootstrap_dir, options.download_cache_dir) 
 
     if verbose:    
         print('Importing script: {}'.format(os.path.join(virtualenv_util_path, VIRTUALENV_UTIL_MODULE_NAME)))
-
-    _import_and_execute_package(virtualenv_util_path, options_overrides=vars(options))  
+        
+    _import_and_execute_package(virtualenv_util_path, options_overrides=vars(options))      
 
 
 if __name__ == '__main__':
