@@ -250,14 +250,14 @@ def _get_newest_package_version_and_url(pypi_server, package_name, package_exten
         url_dir = pypi_server + '/' + package_name
         
         try:
-            f_remote = urllib.urlopen(virtualenv_util_url_dir)
+            f_remote = urllib.urlopen(url_dir)
             index = f_remote.read()
 
         # If we get a URL error, try the special case of a "flat" directory structure.
         except urllib.URLError:    
             url_dir = pypi_server
 
-            f_remote = urllib.urlopen(virtualenv_util_url_dir)
+            f_remote = urllib.urlopen(url_dir)
             index = f_remote.read()
 
         # Very simple regex parser that finds all hyperlinks in the index
@@ -278,14 +278,15 @@ def _get_newest_package_version_and_url(pypi_server, package_name, package_exten
     # use in the virtualenv_util package.  This could be enhanced.  
     versions.sort()
 
+    # Select the highest version.        
     # Select the highest version.  
     try:      
         highest_version = versions[-1]
     except IndexError:
         raise RuntimeError('Unable to find any version of package {} at URL {}'.format(package_name, pypi_server))    
-
+        
     return highest_version, '/'.join([url_dir,
-                                      '{}-{}{}'.format(package_name, highest_version, package_extension)])   
+                                      '{}-{}{}'.format(package_name, highest_version, package_extension)])    
 
 def _stage_virtualenv(options, install_virtualenv=True):
     '''Creates staging virtual environment in order to help with the "real"

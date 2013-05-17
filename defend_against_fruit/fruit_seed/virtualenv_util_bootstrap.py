@@ -55,14 +55,14 @@ def _get_newest_package_version_and_url(pypi_server, package_name, package_exten
         url_dir = pypi_server + '/' + package_name
         
         try:
-            f_remote = urllib.urlopen(virtualenv_util_url_dir)
+            f_remote = urllib.urlopen(url_dir)
             index = f_remote.read()
 
         # If we get a URL error, try the special case of a "flat" directory structure.
         except urllib.URLError:    
             url_dir = pypi_server
 
-            f_remote = urllib.urlopen(virtualenv_util_url_dir)
+            f_remote = urllib.urlopen(url_dir)
             index = f_remote.read()
 
         # Very simple regex parser that finds all hyperlinks in the index
