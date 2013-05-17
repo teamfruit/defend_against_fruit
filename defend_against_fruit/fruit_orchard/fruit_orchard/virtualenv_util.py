@@ -19,11 +19,15 @@ if sys.version_info >= (3, 0):
     import configparser
     # noinspection PyUnresolvedReferences
     import urllib.request as urllib
+    # noinspection PyUnresolvedReferences   
+    import urllib.parse as urlparse
 else:
     # noinspection PyUnresolvedReferences
     import ConfigParser as configparser
     # noinspection PyUnresolvedReferences
     import urllib2 as urllib
+    # noinspection PyUnresolvedReferences   
+    import urlparse
 
 
 def version():
@@ -229,7 +233,59 @@ def do_virtualenv_install(options):
         if temp_dir:
             # Clean up the temp. virtual environment. 
             _cleanup_virtualenv(temp_dir)
+            
+def _get_newest_package_version_and_url(pypi_server, package_name, package_extension = '.tar.gz'):    
+    '''Utility function that searches the pypi_server specified for
+    the latest version of the package with the name specified.
+    Will return the version of the newest package found and the
+    url to the package file on the server.
+    '''
 
+    # If we are getting our packages from the local filesystem, we
+    # need to get the directory listing specially.
+    if urlparse.urlparse(pypi_server).scheme == 'file':
+        filenames = os.listdir(urlparse.urlparse(pypi_server).path.lstrip('/'))
+        url_dir = pypi_server
+    else:
+        url_dir = pypi_server + '/' + package_name
+        
+        try:
+            f_remote = urllib.urlopen(virtualenv_util_url_dir)
+            index = f_remote.read()
+
+        # If we get a URL error, try the special case of a "flat" directory structure.
+        except urllib.URLError:    
+            url_dir = pypi_server
+
+            f_remote = urllib.urlopen(virtualenv_util_url_dir)
+            index = f_remote.read()
+
+        # Very simple regex parser that finds all hyperlinks in the index
+        # HTML... this may break in some cases, but we want to keep it super 
+        # simple in the bootstrap.               
+        filenames = re.findall('href="(.*?)"', str(index.lower()))    
+
+    # Get all hyperlinks that start with the virtualenv package name
+    # and end with the package extension.
+    versions = []
+    for filename in filenames:
+        if filename.startswith(package_name+'-') and filename.endswith(package_extension):
+            version = filename.split('-')[-1].replace(package_extension, '')
+            versions.append(version)
+
+    # Sort the versions from lowest to highest.
+    # NOTE: This simple sort will work for most versions we expect to
+    # use in the virtualenv_util package.  This could be enhanced.  
+    versions.sort()
+
+    # Select the highest version.  
+    try:      
+        highest_version = versions[-1]
+    except IndexError:
+        raise RuntimeError('Unable to find any version of package {} at URL {}'.format(package_name, pypi_server))    
+
+    return highest_version, '/'.join([url_dir,
+                                      '{}-{}{}'.format(package_name, highest_version, package_extension)])   
 
 def _stage_virtualenv(options, install_virtualenv=True):
     '''Creates staging virtual environment in order to help with the "real"
@@ -243,38 +299,14 @@ def _stage_virtualenv(options, install_virtualenv=True):
         # Was a fixed virtualenv version specified?  If not, we need to check
         # the PyPI server for the latest version.    
         if options.virtualenv_version is None:
-            virtualenv_url_dir = (options.pypi_pull_server + '/' + 
-                options.virtualenv_package_name)
+            options.virtualenv_version, virtualenv_url = _get_newest_package_version_and_url(options.pypi_pull_server,
+                                                                                             options.virtualenv_package_name)
+        else:
+            virtualenv_url = '/'.join([options.pypi_pull_server, 
+                                       options.virtualenv_package_name, 
+                                       '{}-{}.tar.gz'.format(options.virtualenv_package_name, options.virtualenv_version)])                                                                                  
 
-            f_remote = urllib.urlopen(virtualenv_url_dir)
-            index = f_remote.read()
-
-            # Very simple regex parser that finds all hyperlinks in the index
-            # HTML... this may break in some cases, but we want to keep it super 
-            # simple in the bootstrap.               
-            hyperlinks = re.findall('href="(.*?)"', str(index.lower()))
-
-            # Get all hyperlinks that start with the virtualenv package name
-            # and end with the package extension.
-            versions = []
-            for hyperlink in hyperlinks:
-                if hyperlink.startswith(options.virtualenv_package_name + '-') and hyperlink.endswith('.tar.gz'):
-                    version = hyperlink.split('-')[-1].replace('.tar.gz', '')
-                    versions.append(version)
-
-                    # Sort the versions from lowest to highest.
-                    # NOTE: This simple sort will work for most versions we expect to
-                    # encounter.  This could be enhanced.
-            versions.sort()
-
-            # Select the highest version and change our options container to 
-            # reflect the version.  
-            options.virtualenv_version = versions[-1]
-
-        # Attempt to locate and download a virtualenv package of the version
-        # specified on the artifact server.
-        virtualenv_tar_filename = '{}-{}.tar.gz'.format(options.virtualenv_package_name, options.virtualenv_version)
-        virtualenv_url = '/'.join([options.pypi_pull_server, options.virtualenv_package_name, virtualenv_tar_filename])
+        virtualenv_tar_filename = os.path.basename(urlparse.urlparse(virtualenv_url).path)
 
         f_remote = urllib.urlopen(virtualenv_url)
         f_local = open(os.path.join(temp_dir, virtualenv_tar_filename), 'wb')
@@ -299,15 +331,23 @@ def _stage_virtualenv(options, install_virtualenv=True):
                 os.path.join(unpacked_tar_directory, 'virtualenv.py'), 
                 '--distribute', 
                 bootstrap_vm_directory])
+                
+            # Get the right options to pass to pip to install virtualenv
+            # to the bootstrap environment.  Again, this is necessary because
+            # pip does not support file:// index urls.
+            if urlparse.urlparse(options.pypi_pull_server).scheme == 'file':
+                install_options = ['--no-index','--find-links', options.pypi_pull_server]
+            else:
+                install_options = ['-i', options.pypi_pull_server]                    
 
             # Install virtualenv into this bootstrap environment using pip, pointing
             # at the right server.
             subprocess.check_call([
                 os.path.join(bootstrap_vm_directory, 'Scripts', 'pip'),
-                'install',
-                '{}=={}'.format(options.virtualenv_package_name, 
-                                options.virtualenv_version),
-                '-i', options.pypi_pull_server])
+                'install'] 
+                + install_options +
+                ['{}=={}'.format(options.virtualenv_package_name, 
+                                options.virtualenv_version)] )
         
     except Exception:
         # Even though the calling code is normally responsible for cleaning
@@ -325,11 +365,20 @@ def _cleanup_virtualenv(temp_dir):
     _stage_virtualenv().
     '''
     print('Cleaning up bootstrap environment')
+    #print '****', temp_dir
     shutil.rmtree(temp_dir, ignore_errors=False, onerror=handle_remove_readonly)
         
 
 def _write_pip_config(home_dir, options):
     virtualenv_util = os.path.basename(__file__)
+    additional_global_options = ''
+    
+    # Pip is not happy with an index-url that is on the local filesystem
+    # (i.e. file://).  It would be cool if pip would be enhanced to handle
+    # this someday, but for now, we need to pass these things to pip via
+    # the find-links option.     
+    if urlparse.urlparse(options.pypi_pull_server).scheme == 'file':
+        additional_global_options = 'no_index=true\nfind_links={}'.format(options.pypi_pull_server)
 
     ################################
     #Create pip.ini
@@ -338,6 +387,7 @@ def _write_pip_config(home_dir, options):
 
         [global]
         index-url={index_url}
+        {additional_global_options}
 
         [install]
         use-wheel=true
@@ -346,7 +396,8 @@ def _write_pip_config(home_dir, options):
     pip_ini_contents = pip_ini.format(
         virtualenv_util=virtualenv_util,
         virtualenv_util_cfg=options.cfg_file,
-        index_url=options.pypi_pull_server)
+        index_url=options.pypi_pull_server,
+        additional_global_options=additional_global_options)
 
     _write_config_file(home_dir=home_dir, home_file_name='pip\pip.ini', contents=pip_ini_contents)
 
