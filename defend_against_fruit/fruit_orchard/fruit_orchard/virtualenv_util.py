@@ -72,6 +72,7 @@ def get_options_from_config_file_and_args(config_file_path=None,options_override
     parser.add_argument('--download_cache_dir', default=None)
     # Force type=bool since the config file will be a string
     parser.add_argument('--sitepkg_install', type=int, default=0)
+    parser.add_argument('--helper_scripts', action='store_true', default=False)
     
     parser.set_defaults(**config_file_global_settings)
     
@@ -519,9 +520,62 @@ def _fix_download_cache_dir_filenames(options):
                       os.path.join(options.download_cache_dir, item.split('%2F')[-1]))                                    
 
 
-def read_and_update_environment_variables(options):
-    home_dir = os.path.join(options.virtualenv_path, 'home')
+def _create_ve_helper_scripts(options):
+    '''This function drops some files that are useful for dealing with
+    the virtual environment that was created in the root directory of
+    the ve.  The files are platform specific since they need to make
+    changes to the environment, among other things.
+        
+    Think of this as a lite version of virtualenvwrapper, without having
+    to have a special package installed in your global site-packages,
+    and without the restrictions on where / how your virtualenvs can be
+    stored.'''
+
+    # If we installed to the global site-packages (i.e. we didn't make a
+    # virtualenv) then there is nothing to do.
+    if options.sitepkg_install:
+        return
+    
+    if os.name == 'nt':
+        # Batch file to activate the virtualenv.  This does a little extra
+        # magic, like restoring our environment variables 
+        f = open(os.path.join(options.virtualenv_path, 'activate.bat'), 'w')        
+        f.write(dedent(r'''
+                @echo off
+                %~dp0\Scripts\virtualenv_util_make_platform_helpers
+                call %~dp0\home\virtualenv_util_activate.bat
+                %~dp0\Scripts\activate.bat
+                '''))                
+        f.close()                
+
+        # Batch file to deactivate the virtualenv.
+        f = open(os.path.join(options.virtualenv_path, 'deactivate.bat'), 'w')        
+        f.write(dedent(r'''
+                @echo off
+                call %~dp0\home\virtualenv_util_deactivate.bat
+                %~dp0\Scripts\deactivate.bat
+                '''))                
+        f.close()    
+
+        # Batch file to open a command shell / prompt to the root of the
+        # virtualenv, then activate it.  Good for messing around at the 
+        # command line.
+        f = open(os.path.join(options.virtualenv_path, 'shell.bat'), 'w')        
+        f.write(dedent(r'''
+                @echo off
+                start cmd.exe /k "%~dp0\activate.bat"
+                '''))                
+        f.close()                
+    else:
+        print('Creating virtualenv helper scripts not supported for OS {}, skipping'.format(os.name))    
+
+def read_and_update_environment_variables(options = None, home_dir = None):
+    if home_dir is None and options:
+        home_dir = os.path.join(options.virtualenv_path, 'home')
+    
     home_env_file_path = os.path.join(home_dir, '.env')
+
+    original_environment_variables = {}
 
     if not os.path.isfile(home_env_file_path):
         environment_variables = {}
@@ -531,8 +585,42 @@ def read_and_update_environment_variables(options):
         environment_variables = dict(config.items("environment_variables"))
 
     for name in environment_variables.keys():
+        if os.environ.has_key(name.upper()):
+            original_environment_variables[name] = os.environ[name.upper()]
+        else:
+            original_environment_variables[name] = None            
+        
         os.environ[name.upper()] = environment_variables[name]
+        
+    return environment_variables, original_environment_variables         
 
+def make_platform_helpers():
+    # Make sure we are running in a virtualenv...
+    if not hasattr(sys, 'real_prefix'):
+        return
+
+    home_dir = os.path.join(sys.prefix, 'home')
+    
+    if not os.path.isdir(home_dir):
+        return
+    
+    # Read the environment variables from the .env configuration file.
+    new_env_vars, original_env_vars = read_and_update_environment_variables(home_dir=home_dir)        
+
+    if os.name == 'nt':
+        f = open(os.path.join(home_dir, 'virtualenv_util_activate.bat'), 'w')
+        for new_env_var in new_env_vars.keys():
+            f.write('set {}={}\n'.format(new_env_var.upper(), new_env_vars[new_env_var]))
+        f.close()    
+                
+        f = open(os.path.join(home_dir, 'virtualenv_util_deactivate.bat'), 'w')
+        for original_env_var in original_env_vars.keys():
+            if original_env_vars[original_env_var] is None:
+                f.write('set {}=\n'.format(original_env_var.upper()))            
+            else:
+                f.write('set {}={}\n'.format(original_env_var.upper(), original_env_vars[original_env_var]))
+        f.close()    
+    
 
 def main(config_file_path=None, options_overrides={}):
     options = get_options_from_config_file_and_args(config_file_path, options_overrides)
@@ -583,6 +671,18 @@ def main(config_file_path=None, options_overrides={}):
         piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
         if options.sitepkg_install:
             piptool = os.path.join(sys.prefix, 'Scripts', 'pip')            
+            
+        # Always install a copy of ourselves, even if no one asked for us.
+        p = subprocess.Popen(
+            '"{}" install {} {}=={}'.format(piptool,
+                                            _get_pip_install_args(options),
+                                            VIRTUALENV_UTIL_PACKAGE_NAME,
+                                            version()))                                                       
+        p.wait()                                                       
+        
+        if p.returncode != 0:
+            raise RuntimeError('Failed to install package {} via pip, check pip output for more information'.format(VIRTUALENV_UTIL_PACKAGE_NAME)) 
+             
 
         # If requirements were specified as a list of requirements
         # specifiers separated by commas, install each package individually.
@@ -619,7 +719,10 @@ def main(config_file_path=None, options_overrides={}):
             f.close()
             
         if options.download_cache_dir:
-            _fix_download_cache_dir_filenames(options)    
+            _fix_download_cache_dir_filenames(options)
+            
+        if options.helper_scripts:
+            _create_ve_helper_scripts(options)        
 
     # TODO: Add support for sitepkg install?
     if options.run is not None:

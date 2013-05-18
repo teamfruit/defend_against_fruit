@@ -23,4 +23,9 @@ setup(
     long_description=open(name='README.txt').read(),
     test_suite='nose.collector',
     setup_requires=['nose>=1.2.1'],
+    entry_points={
+        'console_scripts': [
+            'virtualenv_util_make_platform_helpers=fruit_orchard.virtualenv_util:make_platform_helpers',
+        ],
+    },    
 )
