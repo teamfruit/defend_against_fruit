@@ -1,5 +1,6 @@
 import json
 import os
+import pprint
 import tempfile
 
 from nose.tools import eq_
@@ -553,3 +554,49 @@ def test_no_module_file__missing_requirements_file__no_force_dependency_rebuild_
         eq_(e.filename, non_existent_requirements_file)
 
     assert exception_caught, "Expect IOError to be encountered"
+
+
+def test_case_sensitive_dependencies():
+    """Artifact IDs of dependencies should match the real project name, not the case-insensitive key."""
+
+    def mock_determine_dependency_checksums(artifact_id, version):
+        return None, None
+
+    class MockModuleBuilder(object):
+        def __init__(self):
+            self.__module_names = []
+
+        def ensure_dependencies_defined(self):
+            pass
+
+        # noinspection PyShadowingBuiltins
+        def add_dependency(self, type, id, sha1, md5):
+            self.__module_names.append(id.artifact_id)
+
+        def compare_modules(self, freeze_file):
+            with open(freeze_file) as f:
+                modules = f.read().splitlines()
+
+            expected_set = frozenset([m.split('==')[0] for m in modules])
+            actual_set = frozenset(self.__module_names)
+
+            assert actual_set == expected_set, (
+                '\nActual module names:\n    {}'
+                '\nExpected module names:\n    {}'.format(
+                    '\n    '.join(pprint.pformat(actual_set).splitlines()),
+                    '\n    '.join(pprint.pformat(expected_set).splitlines())))
+
+            eq_(actual_set, expected_set)
+
+    generator = BuildInfoModuleGenerator(
+        determine_file_path_fn=None,
+        determine_checksums_from_file_path_fn=None)
+
+    # Monkey patch _determine_dependency_checksums so that it returns None, None as the checksums.
+    generator._determine_dependency_checksums = mock_determine_dependency_checksums
+
+    freeze_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "case-sensitive-requirements.txt")
+
+    mock_module_builder = MockModuleBuilder()
+    generator._reset_dependencies(freeze_file, mock_module_builder)
+    mock_module_builder.compare_modules(freeze_file)
