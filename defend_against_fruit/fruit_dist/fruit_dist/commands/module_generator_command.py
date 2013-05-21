@@ -56,7 +56,7 @@ class ModuleGeneratorCommand(Command):
         #The work involved to add the options isn't so much in the code changes to this command
         #as in the test coverage that would need to be written. It would also probably require
         #refactoring the commands to share a common base class.
-        # All this currently falls under YAGNI (Your Not Going To Need It).
+        # All this currently falls under YAGNI (You're Not Going To Need It).
 
         verify_cert = not self.no_cert_verify
         repo_details = read_options()

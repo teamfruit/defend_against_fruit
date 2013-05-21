@@ -2,7 +2,8 @@ import json
 import os
 import pkg_resources
 from pip.exceptions import DistributionNotFound
-from build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_WHEEL, PYTHON_SPHINX, PYTHON_RPM, PYTHON_FREEZE, PYTHON_GROUP_ID
+from build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_WHEEL, PYTHON_SPHINX, PYTHON_RPM
+from build.constants import PYTHON_FREEZE, PYTHON_GROUP_ID
 from build.id import Id
 from build.module import Module
 from file_management import write_to_file
@@ -176,14 +177,14 @@ class BuildInfoModuleGenerator(object):
 
         module_builder.ensure_dependencies_defined()
         for req in requirements:
-            #Not sure if I should be using req.key or req.project_name. Values appear to be the same.
-            #Looks like req.key is a case-insensitive form of the project name. Taking that to be a better choice.
-            artifact_id = req.key
-            #artifact_id = req.project_name
+            # There are two options for the artifact ID: req.key and req.project_name. The req.key option is all
+            # lowercase, while the req.project_name option respects the case of the project. Since Artifactory has
+            # trouble locating build dependencies when all lowercase names are specified, req.project_name appears to
+            # be a better option here.
+            artifact_id = req.project_name
+
             assignment, version = req.specs[0]
-
             dependency_id = Id(group_id=PYTHON_GROUP_ID, artifact_id=artifact_id, version=version)
-
             dependency_md5, dependency_sha1 = self._determine_dependency_checksums(artifact_id, version)
 
             module_builder.add_dependency(
