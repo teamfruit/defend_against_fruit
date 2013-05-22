@@ -3,6 +3,7 @@ from setuptools import Command
 
 from fruit_dist.artifactory import artifactory_rest
 from fruit_dist.artifactory.repo_detail import read_options
+from fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
 from fruit_dist.pip_package_path_finder import PipPackagePathFinder
 from fruit_dist.build.constants import PYTHON_GROUP_ID
 from fruit_dist.build.id import Id
@@ -72,9 +73,12 @@ class ModuleGeneratorCommand(Command):
                 file_path=file_path,
                 verify_cert=verify_cert)
 
-        build_info_module_generator = BuildInfoModuleGenerator(
+        checksum_dependency_helper = ChecksumDependencyHelper(
             determine_file_path_fn=pip_package_path_finder.determine_file_path,
             determine_checksums_from_file_path_fn=determine_checksums)
+
+        build_info_module_generator = BuildInfoModuleGenerator(
+            determine_dependency_checksums_fn=checksum_dependency_helper)
 
         requirements_file = compute_requirements_filename_full_path(
             artifact_id=module_id.artifact_id,

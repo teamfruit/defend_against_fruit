@@ -7,6 +7,7 @@ from nose.tools import eq_
 from pip.exceptions import DistributionNotFound
 from requests import HTTPError
 
+from fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
 from fruit_dist.checksums import Checksums
 from fruit_dist.build.artifact import Artifact
 from fruit_dist.build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_GROUP_ID
@@ -176,9 +177,12 @@ def _execute(module_id, dist_files_tuple_array, freeze_file, module_file, force_
              expected_module_properties, expected_artifacts, expected_dependencies):
     #tuple pattern is: (command, python_version, dist_file)
 
-    build_info_module_generator = BuildInfoModuleGenerator(
+    checksum_dependency_helper = ChecksumDependencyHelper(
         determine_file_path_fn=helper.determine_file_path,
         determine_checksums_from_file_path_fn=helper.determine_checksums_from_file_path)
+
+    build_info_module_generator = BuildInfoModuleGenerator(
+        determine_dependency_checksums_fn=checksum_dependency_helper)
 
     ########################################
     #Invoke functionality being tested
@@ -229,9 +233,12 @@ def test_rest_exception_no_module_file__full_requirements_file__no_force_depende
     module_output_file_name = _create_temp_file_name()
     exception_caught = False
     try:
-        build_info_module_generator = BuildInfoModuleGenerator(
+        checksum_dependency_helper = ChecksumDependencyHelper(
             determine_file_path_fn=helper.determine_file_path,
             determine_checksums_from_file_path_fn=helper.determine_checksums_from_file_path_throw_exception)
+
+        build_info_module_generator = BuildInfoModuleGenerator(
+            determine_dependency_checksums_fn=checksum_dependency_helper)
 
         ########################################
         #Invoke functionality being tested
@@ -557,10 +564,7 @@ def test_no_module_file__missing_requirements_file__no_force_dependency_rebuild_
 
 
 def test_case_sensitive_dependencies():
-    """Artifact IDs of dependencies should match the real project name, not the case-insensitive key."""
-
-    def mock_determine_dependency_checksums(artifact_id, version):
-        return None, None
+    """Verify that artifact IDs of dependencies match the real project name, not the case-insensitive key."""
 
     class MockModuleBuilder(object):
         def __init__(self):
@@ -588,12 +592,7 @@ def test_case_sensitive_dependencies():
 
             eq_(actual_set, expected_set)
 
-    generator = BuildInfoModuleGenerator(
-        determine_file_path_fn=None,
-        determine_checksums_from_file_path_fn=None)
-
-    # Monkey patch _determine_dependency_checksums so that it returns None, None as the checksums.
-    generator._determine_dependency_checksums = mock_determine_dependency_checksums
+    generator = BuildInfoModuleGenerator(determine_dependency_checksums_fn=lambda artifact_id, version: (None, None))
 
     freeze_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "case-sensitive-requirements.txt")
 

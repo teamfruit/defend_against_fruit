@@ -1,7 +1,6 @@
 import json
 import os
 import pkg_resources
-from pip.exceptions import DistributionNotFound
 from build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_WHEEL, PYTHON_SPHINX, PYTHON_RPM
 from build.constants import PYTHON_FREEZE, PYTHON_GROUP_ID
 from build.id import Id
@@ -54,19 +53,15 @@ class BuildInfoModuleGenerator(object):
     a published build artifact, isn't all that bad.
     """
 
-    def __init__(self, determine_file_path_fn, determine_checksums_from_file_path_fn):
+    def __init__(self, determine_dependency_checksums_fn):
         """Construct generator instance.
 
-        :param determine_file_path_fn: arguments must match (pkg_name=artifact_id, pkg_version=version) and
-        must return the file path portion used in downloading the matching module.
-
-        :param determine_checksums_from_file_path_fn: function taking a file_path and returning
-        the Checksum named tuple
+        :param determine_dependency_checksums_fn: Arguments must match (artifact_id, version) and must return an MD5,
+        SHA1 tuple
         """
         super(BuildInfoModuleGenerator, self).__init__()
 
-        self.determine_file_path_fn = determine_file_path_fn
-        self.determine_checksums_from_file_path_fn = determine_checksums_from_file_path_fn
+        self.determine_dependency_checksums_fn = determine_dependency_checksums_fn
         self._command_to_type_dict = {
             'sdist': PYTHON_SDIST,
             'bdist': PYTHON_BDIST,
@@ -157,21 +152,6 @@ class BuildInfoModuleGenerator(object):
             artifact_type = self._determine_type_from_command_name(cmd)
             module_builder.add_file_as_artifact(type=artifact_type, file=artifact)
 
-    def _determine_dependency_checksums(self, artifact_id, version):
-        try:
-            #determine_file_path_fn may throw a DistributionNotFound exception
-            dependency_path = self.determine_file_path_fn(pkg_name=artifact_id, pkg_version=version)
-
-            #determine_checksums_from_file_path_fn may throw an RequestException but if so just let it
-            #bubble up.
-            dependency_checksums = self.determine_checksums_from_file_path_fn(dependency_path)
-            dependency_sha1 = dependency_checksums.sha1
-            dependency_md5 = dependency_checksums.md5
-        except DistributionNotFound:
-            dependency_sha1 = None
-            dependency_md5 = None
-        return dependency_md5, dependency_sha1
-
     def _reset_dependencies(self, freeze_file, module_builder):
         requirements = self._parse_req_file(requirement_file=freeze_file)
 
@@ -185,7 +165,7 @@ class BuildInfoModuleGenerator(object):
 
             assignment, version = req.specs[0]
             dependency_id = Id(group_id=PYTHON_GROUP_ID, artifact_id=artifact_id, version=version)
-            dependency_md5, dependency_sha1 = self._determine_dependency_checksums(artifact_id, version)
+            dependency_md5, dependency_sha1 = self.determine_dependency_checksums_fn(artifact_id, version)
 
             module_builder.add_dependency(
                 type=None,
