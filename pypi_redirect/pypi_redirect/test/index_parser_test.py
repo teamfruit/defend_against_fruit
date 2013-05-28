@@ -1,8 +1,8 @@
 from collections import OrderedDict
-import os
 from nose.tools import eq_, raises
 from pypi_redirect import index_parser
 from lxml.etree import XMLSyntaxError
+from _test_utils import read_index
 
 
 def typical_index_test():
@@ -95,16 +95,8 @@ def bad_index_test():
     _assert_parse_results('bad_index.html')
 
 
-def _read_index(filename):
-    index_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'resources', filename)
-
-    with open(index_path) as f:
-        return f.read()
-
-
 def _assert_parse_results(index_filename, expected=None):
-    html_str = _read_index(index_filename)
+    html_str = read_index(index_filename)
     actual = index_parser.parse(
         base_url='https://pypi.python.org/simple',
         package_path='Sphinx',

@@ -92,7 +92,7 @@ class Simple(object):
             split_url = urlparse.urlsplit(link.attrib['href'])
             md5 = split_url.fragment.split('=')[-1]
             if not md5:
-                raise cherrypy.NotFound('MD5 hash not available')
+                raise cherrypy.HTTPError(404, 'MD5 hash not available')
             cherrypy.response.headers['Content-Type'] = \
                 'application/x-checksum'
             return md5
