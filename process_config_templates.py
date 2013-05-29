@@ -157,19 +157,23 @@ def run(command_line_args):
     _log_values(parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='defend_against_fruit/ci_config',
+        relative_ci_config_dir_path=os.path.join('defend_against_fruit', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='python_garden/basket/ci_config',
+        relative_ci_config_dir_path=os.path.join('python_garden', 'basket', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='python_garden/fruit/ci_config',
+        relative_ci_config_dir_path=os.path.join('python_garden', 'fruit', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='python_garden/pest/ci_config',
+        relative_ci_config_dir_path=os.path.join('python_garden', 'pest', 'ci_config'),
+        parsed_args=parsed_args)
+
+    _process_ci_config_dir(
+        relative_ci_config_dir_path=os.path.join('pypi_redirect', 'ci_config'),
         parsed_args=parsed_args)
 
 

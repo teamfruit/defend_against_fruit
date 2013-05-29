@@ -1,0 +1,7 @@
+fruit_dist>=1.2.43
+teamcity-nose>=1.2
+
+# lxml would ideally *only* be listed in setup.py. For whatever reason, the
+# package install which distribute uses for install_requires ignores or does
+# not support wheels.
+lxml
