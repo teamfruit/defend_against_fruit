@@ -17,6 +17,8 @@ def _parse_internal_links(base_url, html_root, package_path):
     rows = OrderedDict()
     for link in _all_internal_links_and_directories(html_root):
         href = link.attrib['href']
+        if not _is_ascii(href):
+            continue
         if href.endswith('/'):
             rows[href] = None
         else:
@@ -24,6 +26,14 @@ def _parse_internal_links(base_url, html_root, package_path):
                 download_url=_make_url_absolute(base_url, package_path, href),
                 checksums=_determine_checksums(href))
     return rows
+
+
+def _is_ascii(s):
+    try:
+        s.encode('ascii')
+        return True
+    except UnicodeEncodeError:
+        return False
 
 
 def _parse_html(html_str):

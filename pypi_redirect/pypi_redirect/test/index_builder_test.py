@@ -1,5 +1,3 @@
-# coding=utf-8
-
 from collections import OrderedDict
 from nose.tools import eq_
 from pypi_redirect import index_builder
@@ -93,7 +91,9 @@ def typical_index_test():
                     '#md5=55a33cc13b5096c8763cd4a933b30ddc'),
                 checksums=Checksums(
                     md5='55a33cc13b5096c8763cd4a933b30ddc',
-                    sha1=None)))])
+                    sha1=None))),
+        ('subdir/', None),
+    ])
 
     _assert_parse_results(
         package_path='Sphinx',
@@ -129,9 +129,8 @@ def empty_index_test():
 
 def directory_index_test():
     index_rows = OrderedDict([
-        (u'☃/', None),
-        (u'Sphinx/', None),
-        (u'nose/', None)])
+        ('Sphinx/', None),
+        ('nose/', None)])
 
     _assert_parse_results(
         package_path='Python/',
