@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from collections import OrderedDict
 from nose.tools import eq_
 from pypi_redirect import index_builder
@@ -94,6 +96,7 @@ def typical_index_test():
                     sha1=None)))])
 
     _assert_parse_results(
+        package_path='Sphinx',
         index_rows=index_rows,
         output_file='typical_index_rebuilt.html')
 
@@ -112,19 +115,33 @@ def single_index_test():
                     sha1=None)))])
 
     _assert_parse_results(
+        package_path='Sphinx',
         index_rows=index_rows,
         output_file='single_index_rebuilt.html')
 
 
 def empty_index_test():
     _assert_parse_results(
+        package_path='Sphinx',
         index_rows=OrderedDict(),
         output_file='empty_index_rebuilt.html')
 
 
-def _assert_parse_results(index_rows, output_file):
+def directory_index_test():
+    index_rows = OrderedDict([
+        (u'☃/', None),
+        (u'Sphinx/', None),
+        (u'nose/', None)])
+
+    _assert_parse_results(
+        package_path='Python/',
+        index_rows=index_rows,
+        output_file='directory_index_rebuilt.html')
+
+
+def _assert_parse_results(package_path, index_rows, output_file):
     actual_html_str = index_builder.build(
-        package_path='Sphinx',
+        package_path=package_path,
         index_rows=index_rows)
 
     expected_html_str = read_index(output_file)

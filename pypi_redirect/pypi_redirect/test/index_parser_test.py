@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from collections import OrderedDict
 from nose.tools import eq_, raises
 from pypi_redirect import index_parser
@@ -68,6 +70,14 @@ def typical_index_test():
             checksums=index_parser.Checksums(
                 md5='55a33cc13b5096c8763cd4a933b30ddc',
                 sha1=None))),
+        (u'☃-0.5.tar.gz', index_parser.IndexRow(
+            download_url=u'http://pypi.acme.com/packages'
+                         u'/2.7/☃/☃-0.5.tar.gz'
+                         u'#md5=55a33cc13b5096c8763cd4a933b30ddc',
+            checksums=index_parser.Checksums(
+                md5='55a33cc13b5096c8763cd4a933b30ddc',
+                sha1=None))),
+        ('subdir/', None)
     ))
     _assert_parse_results('typical_index.html', expected)
 
@@ -88,6 +98,15 @@ def single_index_test():
 def empty_index_test():
     expected = OrderedDict()
     _assert_parse_results('empty_index.html', expected)
+
+
+def directory_index_test():
+    expected = OrderedDict((
+        (u'☃/', None),
+        (u'Sphinx/', None),
+        (u'nose/', None),
+    ))
+    _assert_parse_results('directory_index.html', expected)
 
 
 @raises(XMLSyntaxError)

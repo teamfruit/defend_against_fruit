@@ -15,11 +15,14 @@ def parse(base_url, package_path, html_str):
 
 def _parse_internal_links(base_url, html_root, package_path):
     rows = OrderedDict()
-    for link in _all_internal_links(html_root):
+    for link in _all_internal_links_and_directories(html_root):
         href = link.attrib['href']
-        rows[link.text.strip()] = IndexRow(
-            download_url=_make_url_absolute(base_url, package_path, href),
-            checksums=_determine_checksums(href))
+        if href.endswith('/'):
+            rows[href] = None
+        else:
+            rows[link.text.strip()] = IndexRow(
+                download_url=_make_url_absolute(base_url, package_path, href),
+                checksums=_determine_checksums(href))
     return rows
 
 
@@ -29,8 +32,17 @@ def _parse_html(html_str):
     return html_root
 
 
-def _all_internal_links(html_root):
-    return html_root.xpath(".//a[@rel = 'internal']")
+def _all_internal_links_and_directories(html_root):
+    return html_root.xpath(
+        ".//a["
+        "  @rel = 'internal'"
+        "  or "
+        "  ("
+        "    substring(@href, 1, string-length(text())) = text()"
+        "    and "
+        "    substring(@href, string-length(@href)) = '/'"
+        "   )"
+        "]")
 
 
 def _is_absolute_url(url):
