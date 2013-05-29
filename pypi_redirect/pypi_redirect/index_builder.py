@@ -11,12 +11,12 @@ def build(package_path, index_rows):
     return built
 
 
-def _rows_for_file(package_file, row):
-    yield _format_row(package_file)
-    if row.checksums.md5:
-        yield _format_row(package_file + '.md5')
-    if row.checksums.sha1:
-        yield _format_row(package_file + '.sha1')
+def _rows_for_file(package_filename, index_row):
+    yield _format_row(package_filename)
+    if index_row.checksums.md5:
+        yield _format_row(package_filename + '.md5')
+    if index_row.checksums.sha1:
+        yield _format_row(package_filename + '.sha1')
 
 
 def _format_row(filename):
