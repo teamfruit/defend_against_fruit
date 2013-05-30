@@ -1,7 +1,8 @@
 from collections import OrderedDict
+from functools import partial
 from nose.tools import eq_
 from _test_utils import RequestStub, FunctionStub, ResponseStub
-from pypi_redirect.handler_exception import HandlerException
+from _test_utils import assert_http_redirect
 
 
 def empty_path_is_index_test():
@@ -9,22 +10,16 @@ def empty_path_is_index_test():
 
 
 def empty_path_not_index_test():
-    try:
-        _check_root_path([], is_index=False)
+    handler_runner = partial(
+        _check_root_path,
+        path=[],
+        is_index=False)
 
-    except HandlerException as e:
-        kwargs = e.wrapped_exception.keywords
-
-        assert 'urls' in kwargs, 'No URL specified for redirection'
-        assert 'status' in kwargs, 'No redirect status specified'
-
-        eq_(kwargs['urls'], '/',
-            msg='Expected redirection to /')
-
-        eq_(kwargs['status'], 301,
-            msg='Expected 301 http redirect')
-    else:
-        raise AssertionError('Index handler did not redirect to directory')
+    assert_http_redirect(
+        run_handler_fn=handler_runner,
+        expected_url='/',
+        expected_status=301,
+        failure_description='Index handler did not redirect to directory')
 
 
 def _check_root_path(path, is_index):

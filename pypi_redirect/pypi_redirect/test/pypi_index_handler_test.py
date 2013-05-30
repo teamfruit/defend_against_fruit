@@ -1,8 +1,9 @@
-from lxml.etree import XMLSyntaxError
+from functools import partial
+from lxml.etree import ParseError
 from nose.tools import eq_
 from requests import RequestException
 from _test_utils import RequestStub, ResponseStub, FunctionStub
-from pypi_redirect.handler_exception import HandlerException
+from _test_utils import assert_http_redirect, assert_http_not_found
 
 
 def typical_usage_as_index_test():
@@ -12,60 +13,40 @@ def typical_usage_as_index_test():
 
 
 def typical_usage_not_index_test():
-    try:
-        _check_main_index_path(
-            path=['python', 'nose'],
-            is_index=False)
+    handler_runner = partial(
+        _check_main_index_path,
+        path=['python', 'nose'],
+        is_index=False)
 
-    except HandlerException as e:
-        kwargs = e.wrapped_exception.keywords
-
-        assert 'urls' in kwargs, 'No URL specified for redirection'
-        assert 'status' in kwargs, 'No redirect status specified'
-
-        eq_(kwargs['urls'], 'python/nose/',
-            msg='Expected redirection to python/nose/')
-
-        eq_(kwargs['status'], 301,
-            msg='Expected 301 http redirect')
-    else:
-        raise AssertionError('Index handler did not redirect to directory')
+    assert_http_redirect(
+        run_handler_fn=handler_runner,
+        expected_url='python/nose/',
+        expected_status=301,
+        failure_description='Index handler did not redirect to directory')
 
 
 def http_get_fn_exception_test():
-    try:
-        _check_main_index_path(
-            path=['python', 'nose'],
-            is_index=True,
-            http_get_exception=RequestException())
+    handler_runner = partial(
+        _check_main_index_path,
+        path=['python', 'nose'],
+        is_index=True,
+        http_get_exception=RequestException())
 
-    except HandlerException as e:
-        kwargs = e.wrapped_exception.keywords
-
-        assert 'status' in kwargs, 'No http status specified'
-
-        eq_(kwargs['status'], 404,
-            msg='Expected 404 http error')
-    else:
-        raise AssertionError('Failed to return 404 on failure to get index')
+    assert_http_not_found(
+        run_handler_fn=handler_runner,
+        failure_description='Failed to return 404 on failure to get index')
 
 
 def parse_index_fn_exception_test():
-    try:
-        _check_main_index_path(
-            path=['python', 'nose'],
-            is_index=True,
-            parse_index_exception=XMLSyntaxError())
+    handler_runner = partial(
+        _check_main_index_path,
+        path=['python', 'nose'],
+        is_index=True,
+        parse_index_exception=ParseError(None, None, None, None))
 
-    except HandlerException as e:
-        kwargs = e.wrapped_exception.keywords
-
-        assert 'status' in kwargs, 'No http status specified'
-
-        eq_(kwargs['status'], 404,
-            msg='Expected 404 http error')
-    else:
-        raise AssertionError('Failed to return 404 on failure to parse index')
+    assert_http_not_found(
+        run_handler_fn=handler_runner,
+        failure_description='Failed to return 404 on failure to parse index')
 
 
 def _check_main_index_path(
@@ -124,41 +105,12 @@ def _check_main_index_path(
         'html_str': html_get_response})
 
 
-#############################
-#Interface design notes
-#########
-#
-# IHandler
-#
-#     handle(path, response) -> str
-#
-#
-#
-# root_index_handler : IHandler
-#
-#     ctr(build_index_fn)
-#
-#
-# main_index_handler : IHandler
-#
-#     ctr(pypi_base_url, http_get_fn, parse_index_fn, build_index_fn)
-#
-#
-# module_index_handler : IHandler
-#
-#     ctr(pypi_base_url, http_get_fn, parse_index_fn, build_index_fn)
-#
-#
-# file_handler : IHandler
-#
-#     ctr(pypi_base_url, http_get_fn, parse_index_fn)
-#
+# NOTE
 #
 # invalid_path_handler : IHandler
 #
 #     ctr()
 #
-# ------------------------------------------------------------------------------
 #
 # PathLengthDispatcher
 #

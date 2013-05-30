@@ -61,6 +61,10 @@ def assert_http_not_found(run_handler_fn, failure_description):
 
         eq_(kwargs['status'], 404,
             msg='Expected 404 http status')
+
+    except:
+        raise AssertionError('Failed to raise a HandlerException')
+
     else:
         raise AssertionError(failure_description)
 
@@ -91,5 +95,9 @@ def assert_http_redirect(
 
         eq_(kwargs['status'], expected_status,
             msg='Incorrect redirection status')
+
+    except:
+        raise AssertionError('Failed to raise a HandlerException')
+
     else:
         raise AssertionError(failure_description)

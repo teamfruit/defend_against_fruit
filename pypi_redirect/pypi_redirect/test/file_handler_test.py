@@ -1,6 +1,9 @@
 from collections import OrderedDict, namedtuple
 from functools import partial
+from lxml.etree import ParseError
 from nose.tools import eq_
+from requests import RequestException
+from pypi_redirect.file_handler import FileHandler
 from pypi_redirect.index_parser import IndexRow, Checksums
 from _test_utils import FunctionStub, RequestStub, ResponseStub
 from _test_utils import assert_http_redirect, assert_http_not_found
@@ -102,6 +105,34 @@ def handle_non_existent_sha1_request_test():
         failure_description='Failed to return 404 for non-existent file')
 
 
+def http_get_fn_exception_test():
+    file_entry = _generate_file_entry()
+
+    handler_runner = partial(
+        _check_file_handler,
+        file_entry=file_entry,
+        file_requested=file_entry.filename,
+        http_get_exception=RequestException())
+
+    assert_http_not_found(
+        run_handler_fn=handler_runner,
+        failure_description='Failed to return 404 on failure to get index')
+
+
+def parse_index_fn_exception_test():
+    file_entry = _generate_file_entry()
+
+    handler_runner = partial(
+        _check_file_handler,
+        file_entry=file_entry,
+        file_requested=file_entry.filename,
+        parse_index_exception=ParseError(None, None, None, None))
+
+    assert_http_not_found(
+        run_handler_fn=handler_runner,
+        failure_description='Failed to return 404 on failure to parse index')
+
+
 def _check_file_handler(
         file_entry,
         file_requested,
@@ -110,7 +141,6 @@ def _check_file_handler(
         parse_index_exception=None):
 
     pypi_base_url = 'http://dumb_url.com'
-    package_path = 'something'
 
     parser_response = OrderedDict([
         ('nose-1.2.0.tar.gz', IndexRow(
@@ -162,7 +192,10 @@ def _check_file_handler(
     eq_(response_str, expected_checksum,
         msg='Response checksum did not match the expected checksum')
 
+    html_get_stub.assert_single_kw_call(expected_kwargs={
+        'url': '{}/{}/'.format(pypi_base_url, file_entry.pkg_name)})
+
     parser_stub.assert_single_kw_call(expected_kwargs={
         'base_url': pypi_base_url,
-        'package_path': package_path,
+        'package_path': file_entry.pkg_name,
         'html_str': html_get_response})
