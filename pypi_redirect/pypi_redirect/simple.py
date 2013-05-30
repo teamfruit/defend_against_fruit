@@ -8,16 +8,16 @@ import requests
 from lxml import etree
 
 
-# TODO: / => fake listing with "python" directory
-# /python => 301 redirects to /python/
-# TODO: /python/ => fake listing with all PyPI packages
-# /python/Sphinx => 301 redirects to /python/Sphinx/
-# /python/Sphinx/ => fake listing with all Sphinx packages
-# TODO: /python/sphinx => 301 redirects to /python/Sphinx/
-# TODO: /python/sphinx/ => 301 redirects to /python/Sphinx/
-# /python/Sphinx/Sphinx-1.0.6.tar.gz => 302 redirect to actual Sphinx package
-# TODO: /python/Sphinx/Sphinx-1.0.6.tar.gz.md5 => returns file containing MD5
-# TODO: /python/Sphinx/Sphinx-1.0.6.tar.gz.sha1 => 404
+#  / => fake listing with "python" directory
+#  /python => 301 redirects to /python/
+#  /python/ => fake listing with all PyPI packages
+#  /python/Sphinx => 301 redirects to /python/Sphinx/
+#  /python/Sphinx/ => fake listing with all Sphinx packages
+#  /python/sphinx => 301 redirects to /python/Sphinx/
+#  /python/sphinx/ => 301 redirects to /python/Sphinx/
+#  /python/Sphinx/Sphinx-1.0.6.tar.gz => 302 redirect to actual Sphinx package
+#  /python/Sphinx/Sphinx-1.0.6.tar.gz.md5 => returns file containing MD5
+#  /python/Sphinx/Sphinx-1.0.6.tar.gz.sha1 => 404
 
 #   1. Disable automatic checksums in Artifactory.
 #   2. Clear repo cache.

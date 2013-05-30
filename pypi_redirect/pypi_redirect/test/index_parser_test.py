@@ -93,8 +93,8 @@ def empty_index_test():
 
 def directory_index_test():
     expected = OrderedDict((
-        (u'Sphinx/', None),
-        (u'nose/', None),
+        ('Sphinx/', None),
+        ('nose/', None),
     ))
     _assert_parse_results('directory_index.html', expected)
 

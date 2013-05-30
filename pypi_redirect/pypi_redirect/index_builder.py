@@ -1,17 +1,17 @@
 import cgi
 
 
-def build(package_path, index_rows, linesep='\n'):
-    html_rows = linesep.join(
-        linesep.join(_rows_for_file(p, r)) for p, r in index_rows.iteritems())
+# TODO: Could probably remove package_path
+def build(package_path, index_rows):
+    html_rows = '\n'.join(
+        '\n'.join(_rows_for_file(p, r)) for p, r in index_rows.iteritems())
     built = (
         '<html><head><title>Links for {package_name}</title></head>'
-        '<body><h1>Links for {package_name}</h1>{linesep}'
-        '{html_rows}{linesep}'
+        '<body><h1>Links for {package_name}</h1>\n'
+        '{html_rows}\n'
         '</body></html>'.format(
             package_name=package_path,
-            html_rows=html_rows,
-            linesep=linesep))
+            html_rows=html_rows))
     return built
 
 
