@@ -4,23 +4,24 @@ from nose.tools import eq_
 from requests import RequestException
 from _test_utils import RequestStub, ResponseStub, FunctionStub
 from _test_utils import assert_http_redirect, assert_http_not_found
+from pypi_redirect.pypi_index_handler import PyPIIndexHandler
 
 
 def typical_usage_as_index_test():
     _check_main_index_path(
-        path=['python', 'nose'],
+        path=['nose'],
         is_index=True)
 
 
 def typical_usage_not_index_test():
     handler_runner = partial(
         _check_main_index_path,
-        path=['python', 'nose'],
+        path=['nose'],
         is_index=False)
 
     assert_http_redirect(
         run_handler_fn=handler_runner,
-        expected_url='python/nose/',
+        expected_url='nose/',
         expected_status=301,
         failure_description='Index handler did not redirect to directory')
 
@@ -28,7 +29,7 @@ def typical_usage_not_index_test():
 def http_get_fn_exception_test():
     handler_runner = partial(
         _check_main_index_path,
-        path=['python', 'nose'],
+        path=['nose'],
         is_index=True,
         http_get_exception=RequestException())
 
@@ -40,7 +41,7 @@ def http_get_fn_exception_test():
 def parse_index_fn_exception_test():
     handler_runner = partial(
         _check_main_index_path,
-        path=['python', 'nose'],
+        path=['nose'],
         is_index=True,
         parse_index_exception=ParseError(None, None, None, None))
 
@@ -56,10 +57,10 @@ def _check_main_index_path(
         parse_index_exception=None):
 
     pypi_base_url = 'http://dumb_url.com'
-    package_path = 'something'
     builder_response = 'be dumb builder'
     parser_response = 'be dumb parser'
     html_get_response = 'be dumb html'
+    package_path, = path
 
     html_get_stub = FunctionStub(
         name='HTML Get',
