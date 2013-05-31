@@ -1,5 +1,4 @@
-from handler_utils import fetch_and_parse_index
-from handler_exception import http_301
+from handler_utils import fetch_and_parse_index, ensure_index
 
 
 # TODO: add logging (in a test-friendly way)
@@ -15,10 +14,8 @@ class PyPIIndexHandler(object):
         self.parse_index_fn = parse_index_fn
         self.build_index_fn = build_index_fn
 
+    @ensure_index
     def handle(self, path, request, response):
-        if not request.is_index:
-            raise http_301('/'.join(path) + '/')
-
         package_name, = path
 
         index_url = '{}/{}/'.format(self.pypi_base_url, package_name)

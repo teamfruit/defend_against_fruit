@@ -1,6 +1,19 @@
 from lxml.etree import ParseError
 from requests import RequestException
-from pypi_redirect.handler_exception import http_404
+from pypi_redirect.handler_exception import http_404, http_301
+
+
+def ensure_index(fn):
+    """
+    Decorator for the handle() method of any handler. Ensures that
+    indexes requested without a trailing slash are redirected to a
+    version with the trailing slash.
+    """
+    def wrapper(self, path, request, response):
+        if not request.is_index:
+            raise http_301('/'.join(path) + '/')
+        return fn(self, path, request, response)
+    return wrapper
 
 
 def fetch_and_parse_index(
