@@ -94,7 +94,7 @@ def _get_newest_package_version_and_url(pypi_server, package_name, package_exten
                                       '{}-{}{}'.format(package_name, highest_version, package_extension)])   
 
 
-def _download_package(virtualenv_util_url, virtualenv_util_version, bootstrap_directory, download_cache_dir):
+def _download_package(virtualenv_util_url, virtualenv_util_version, bootstrap_directory):
     '''Downloads and unpacks the virtualenv_util package from the URL
     specified.
     '''
@@ -104,8 +104,6 @@ def _download_package(virtualenv_util_url, virtualenv_util_version, bootstrap_di
     # Download the package source tar from the server.
     f_remote = urllib.urlopen(virtualenv_util_url)
     f_local_filename = os.path.join(ROOT_PATH, virtualenv_util_tar_filename)
-    if download_cache_dir:
-        f_local_filename = os.path.join(download_cache_dir, virtualenv_util_tar_filename)        
     f_local = open(f_local_filename, 'wb')
     f_local.write(f_remote.read())
     f_local.close()
@@ -116,14 +114,13 @@ def _download_package(virtualenv_util_url, virtualenv_util_version, bootstrap_di
     tarf.extractall(ROOT_PATH)
     tarf.close()        
 
-    # Remove the tarball from the current directory.
-    if not download_cache_dir:
-        try:
-            os.unlink(f_local_filename)
-        except:
-            pass
-
     virtualenv_util_path = os.path.join(ROOT_PATH, '{}-{}'.format(VIRTUALENV_UTIL_PACKAGE_NAME, virtualenv_util_version), VIRTUALENV_UTIL_PACKAGE_NAME)
+    
+    # Remove the tarball from the current directory.
+    try:
+        os.unlink(f_local_filename)
+    except:
+        pass    
     
     return virtualenv_util_path
 
@@ -149,6 +146,7 @@ def _get_options(config_file_path=None, options_overrides={}):
     parser.add_argument('--virtualenv_util_path', default=None)
     parser.add_argument('--bootstrap_dir', default=ROOT_PATH)
     parser.add_argument('--cfg_file', default=None)
+    parser.add_argument('--download_dir', default=None)   
     parser.add_argument('--download_cache_dir', default=None)   
     
     parser.set_defaults(**config_file_global_settings)
@@ -186,14 +184,15 @@ def main(config_file_path=None, options_overrides={}, verbose=True):
 
     options = _get_options(config_file_path, options_overrides)
     
-    # If a download cache dir is specified, make a copy of ourselves 
+    # If a download or download cache dir is specified, make a copy of ourselves 
     # there.  That way, the bootstrap script will be available in the
-    # download cache for offline use.
-    if options.download_cache_dir: 
-        try:
-            shutil.copy2(__file__, options.download_cache_dir)
-        except:
-            pass
+    # download dir for offline use.
+    for dir in [options.download_dir, options.download_cache_dir]:
+        if dir: 
+            try:
+                shutil.copy2(__file__, dir)
+            except:
+                pass
     
     if options.virtualenv_util_path:
 
@@ -204,6 +203,10 @@ def main(config_file_path=None, options_overrides={}, verbose=True):
         else:
             if verbose:
                 print('Using local {} package at {}...'.format(VIRTUALENV_UTIL_PACKAGE_NAME, virtualenv_util_path)) 
+    elif options.download_dir is not None:
+        # When the download_dir option is specified, ignore any existing
+        # package and always download a fresh copy.
+        virtualenv_util_path = None
     else:
         virtualenv_util_path, version = _check_for_existing_package(options.bootstrap_dir, options.virtualenv_util_version)
         
@@ -236,7 +239,7 @@ def main(config_file_path=None, options_overrides={}, verbose=True):
         if verbose:    
             print('Downloading {} package version {}...'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version))
         
-        virtualenv_util_path = _download_package(url, version, options.bootstrap_dir, options.download_cache_dir) 
+        virtualenv_util_path = _download_package(url, version, options.bootstrap_dir) 
 
     if verbose:    
         print('Importing script: {}'.format(os.path.join(virtualenv_util_path, VIRTUALENV_UTIL_MODULE_NAME)))

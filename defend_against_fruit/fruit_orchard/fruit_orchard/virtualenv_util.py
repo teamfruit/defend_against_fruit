@@ -69,6 +69,7 @@ def get_options_from_config_file_and_args(config_file_path=None,options_override
     parser.add_argument('--virtualenv_version', default=None)
     parser.add_argument('--python_version', default=get_python_version_string())
     parser.add_argument('--pip_install_args', default='--upgrade')
+    parser.add_argument('--download_dir', default=None)
     parser.add_argument('--download_cache_dir', default=None)
     # Force type=bool since the config file will be a string
     parser.add_argument('--sitepkg_install', type=int, default=0)
@@ -315,8 +316,12 @@ def _stage_virtualenv(options, install_virtualenv=True):
         f_local.write(f_remote.read())
         f_local.close()
         
-        if options.download_cache_dir:
-            shutil.copy2(os.path.join(temp_dir, virtualenv_tar_filename), options.download_cache_dir)
+        # If a download dir or download cache directory was specified, 
+        # copy the virtualenv package file to that directory if it is not
+        # already there. 
+        for dir in [options.download_dir, options.download_cache_dir]:
+            if dir and not os.path.isfile(os.path.join(dir, virtualenv_tar_filename)):
+                shutil.copy2(os.path.join(temp_dir, virtualenv_tar_filename), dir)
         
         # Unpack the tarball to the temporary directory.
         tarf = tarfile.open(os.path.join(temp_dir, virtualenv_tar_filename), 'r:gz')
@@ -508,6 +513,9 @@ def _get_pip_install_args(options):
 
     if options.download_cache_dir:
         args += ' --download-cache="{}"'.format(options.download_cache_dir)
+
+    if options.download_dir:
+        args += ' --download="{}"'.format(options.download_dir)
     
     return args
     
@@ -515,9 +523,8 @@ def _fix_download_cache_dir_filenames(options):
     for item in os.listdir(options.download_cache_dir):
         #print item
         if os.path.isfile(os.path.join(options.download_cache_dir, item)) and '%2F' in item:
-            #print item.split('%2F')[-1]            
-            os.rename(os.path.join(options.download_cache_dir, item),
-                      os.path.join(options.download_cache_dir, item.split('%2F')[-1]))                                    
+            shutil.move(os.path.join(options.download_cache_dir, item),
+                        os.path.join(options.download_cache_dir, item.split('%2F')[-1]))                                    
 
 
 def _create_ve_helper_scripts(options):
@@ -733,7 +740,10 @@ def main(config_file_path=None, options_overrides={}):
         # Run a script, assumed to be located in the Scripts directory.                   
         # of the virtualenv.  Note that the script name cannot have any spaces
         # using the logic below.             
-        p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', options.script.split()[0]))
+        if len(options.script.split()) > 1:
+            p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', options.script.split()[0]) + ' ' + ' '.join(options.script.split()[1:]))
+        else:            
+            p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', options.script))
         sys.exit(p.wait())
 
 
