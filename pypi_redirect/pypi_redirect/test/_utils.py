@@ -1,6 +1,6 @@
 import os
 from nose.tools import eq_
-from pypi_redirect.handler_exception import HandlerException
+from pypi_redirect.handler._exception import HandlerException
 
 
 def read_index(filename):

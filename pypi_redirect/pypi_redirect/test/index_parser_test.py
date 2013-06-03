@@ -2,7 +2,7 @@ from collections import OrderedDict
 from nose.tools import eq_, raises
 from pypi_redirect import index_parser
 from lxml.etree import XMLSyntaxError
-from _test_utils import read_index
+from _utils import read_index
 
 
 def typical_index_test():

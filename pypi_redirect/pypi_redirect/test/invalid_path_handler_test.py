@@ -1,11 +1,11 @@
-from _test_utils import assert_http_not_found
-from pypi_redirect.invalid_path_handler import InvalidPathHandler
+from _utils import assert_http_not_found
+from pypi_redirect.handler.invalid_path_handler import InvalidPathHandler
 
 
 def typical_usage_test():
     def handler_runner():
         InvalidPathHandler().handle(
-            path=['path', 'too', 'long'],
+            path=['path', 'little', 'too', 'long'],
             request=None,
             response=None)
 

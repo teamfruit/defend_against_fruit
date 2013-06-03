@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from nose.tools import eq_
 from pypi_redirect import index_builder
-from _test_utils import read_index
+from _utils import read_index
 from pypi_redirect.index_parser import IndexRow, Checksums
 
 

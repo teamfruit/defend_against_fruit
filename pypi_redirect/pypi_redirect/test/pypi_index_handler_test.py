@@ -2,21 +2,21 @@ from functools import partial
 from lxml.etree import ParseError
 from nose.tools import eq_
 from requests import RequestException
-from _test_utils import RequestStub, ResponseStub, FunctionStub
-from _test_utils import assert_http_redirect, assert_http_not_found
-from pypi_redirect.pypi_index_handler import PyPIIndexHandler
+from _utils import RequestStub, ResponseStub, FunctionStub
+from _utils import assert_http_redirect, assert_http_not_found
+from pypi_redirect.handler.pypi_index_handler import PyPIIndexHandler
 
 
 def typical_usage_as_index_test():
     _check_main_index_path(
-        path=['nose'],
+        path=['python', 'nose'],
         is_index=True)
 
 
 def typical_usage_not_index_test():
     handler_runner = partial(
         _check_main_index_path,
-        path=['nose'],
+        path=['python', 'nose'],
         is_index=False)
 
     assert_http_redirect(
@@ -29,7 +29,7 @@ def typical_usage_not_index_test():
 def http_get_fn_exception_test():
     handler_runner = partial(
         _check_main_index_path,
-        path=['nose'],
+        path=['python', 'nose'],
         is_index=True,
         http_get_exception=RequestException())
 
@@ -41,13 +41,24 @@ def http_get_fn_exception_test():
 def parse_index_fn_exception_test():
     handler_runner = partial(
         _check_main_index_path,
-        path=['nose'],
+        path=['python', 'nose'],
         is_index=True,
         parse_index_exception=ParseError(None, None, None, None))
 
     assert_http_not_found(
         run_handler_fn=handler_runner,
         failure_description='Failed to return 404 on failure to parse index')
+
+
+def non_python_root_path_test():
+    handler_runner = partial(
+        _check_main_index_path,
+        path=['not_python', 'nose'],
+        is_index=True)
+
+    assert_http_not_found(
+        run_handler_fn=handler_runner,
+        failure_description='Failed to return 404 on non-"/python/" path')
 
 
 def _check_main_index_path(
@@ -60,7 +71,7 @@ def _check_main_index_path(
     builder_response = 'be dumb builder'
     parser_response = 'be dumb parser'
     html_get_response = 'be dumb html'
-    package_path, = path
+    py, package_path = path
 
     html_get_stub = FunctionStub(
         name='HTML Get',
@@ -104,22 +115,3 @@ def _check_main_index_path(
         'base_url': pypi_base_url,
         'package_path': package_path,
         'html_str': html_get_response})
-
-
-# NOTE
-#
-# invalid_path_handler : IHandler
-#
-#     ctr()
-#
-#
-# PathLengthDispatcher
-#
-#     ctr(path_handlers, invalid_path_handler, find_response_fn)
-#
-#     default(*path) -> str
-#         response = find_response_fn()
-#         try:
-#             return path_handlers[len(path)](path, response)
-#         except IndexError:
-#             return invalid_path_handler(path, response)

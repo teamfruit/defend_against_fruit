@@ -1,6 +1,7 @@
+from functools import wraps
 from lxml.etree import ParseError
 from requests import RequestException
-from pypi_redirect.handler_exception import http_404, http_301
+from pypi_redirect.handler._exception import http_404, http_301
 
 
 def ensure_index(fn):
@@ -9,9 +10,24 @@ def ensure_index(fn):
     indexes requested without a trailing slash are redirected to a
     version with the trailing slash.
     """
+    @wraps(fn)
     def wrapper(self, path, request, response):
         if not request.is_index:
-            raise http_301('/'.join(path) + '/')
+            raise http_301((path[-1] + '/') if path else '/')
+        return fn(self, path, request, response)
+    return wrapper
+
+
+def ensure_python_dir(fn):
+    """
+    Decorator for the handle() method of any handler. Ensures that
+    indexes and files requested are all under the root python/
+    directory.
+    """
+    @wraps(fn)
+    def wrapper(self, path, request, response):
+        if path[0] != 'python':
+            raise http_404('Not under "python/" directory')
         return fn(self, path, request, response)
     return wrapper
 

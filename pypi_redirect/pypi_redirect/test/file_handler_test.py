@@ -3,10 +3,10 @@ from functools import partial
 from lxml.etree import ParseError
 from nose.tools import eq_
 from requests import RequestException
-from pypi_redirect.file_handler import FileHandler
+from pypi_redirect.handler.file_handler import FileHandler
 from pypi_redirect.index_parser import IndexRow, Checksums
-from _test_utils import FunctionStub, RequestStub, ResponseStub
-from _test_utils import assert_http_redirect, assert_http_not_found
+from _utils import FunctionStub, RequestStub, ResponseStub
+from _utils import assert_http_redirect, assert_http_not_found
 
 
 FileEntry = namedtuple('FileEntry', ('pkg_name', 'filename', 'index_row'))
@@ -133,9 +133,24 @@ def parse_index_fn_exception_test():
         failure_description='Failed to return 404 on failure to parse index')
 
 
+def non_python_root_path_test():
+    file_entry = _generate_file_entry()
+
+    handler_runner = partial(
+        _check_file_handler,
+        file_entry=file_entry,
+        file_requested=file_entry.filename,
+        root_dir='not_python')
+
+    assert_http_not_found(
+        run_handler_fn=handler_runner,
+        failure_description='Failed to return 404 on non-"/python/" path')
+
+
 def _check_file_handler(
         file_entry,
         file_requested,
+        root_dir='python',
         expected_checksum=None,
         http_get_exception=None,
         parse_index_exception=None):
@@ -180,7 +195,7 @@ def _check_file_handler(
     # thrown here. Asserting correct redirect behavior is performed in the
     # calling test function.
     response_str = handler.handle(
-        path=[file_entry.pkg_name, file_requested],
+        path=[root_dir, file_entry.pkg_name, file_requested],
         request=request,
         response=response)
 

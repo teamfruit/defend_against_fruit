@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from handler_utils import ensure_index
+from pypi_redirect.handler._utils import ensure_index
 
 
 # TODO: add logging (in a test-friendly way)

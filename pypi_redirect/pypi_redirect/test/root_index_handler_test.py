@@ -1,9 +1,9 @@
 from collections import OrderedDict
 from functools import partial
 from nose.tools import eq_
-from _test_utils import RequestStub, FunctionStub, ResponseStub
-from _test_utils import assert_http_redirect
-from pypi_redirect.root_index_handler import RootIndexHandler
+from _utils import RequestStub, FunctionStub, ResponseStub
+from _utils import assert_http_redirect
+from pypi_redirect.handler.root_index_handler import RootIndexHandler
 
 
 def empty_path_is_index_test():

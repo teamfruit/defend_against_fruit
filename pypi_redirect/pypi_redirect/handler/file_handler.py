@@ -1,6 +1,6 @@
 import os
-from handler_exception import http_404, http_302
-from handler_utils import fetch_and_parse_index
+from _exception import http_404, http_302
+from _utils import fetch_and_parse_index, ensure_python_dir
 
 
 # TODO: add logging (in a test-friendly way)
@@ -29,8 +29,9 @@ class FileHandler(object):
         download_url = index_rows[filename].download_url
         raise http_302(download_url)
 
+    @ensure_python_dir
     def handle(self, path, request, response):
-        package_name, filename = path
+        py, package_name, filename = path
 
         index_url = '{}/{}/'.format(self.pypi_base_url, package_name)
 

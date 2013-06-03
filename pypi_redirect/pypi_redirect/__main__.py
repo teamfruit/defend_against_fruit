@@ -1,5 +1,5 @@
 import cherrypy
-from simple import Simple
+import http
 
 
 def run_server():
@@ -14,16 +14,7 @@ def run_server():
     to:
         https://pypi.python.org/<path-to-filename>
     """
-
-    class Root(object):
-        """
-        Requests to the server root should do nothing.
-        """
-        pass
-
-    root = Root()
-    root.python = Simple()
-    cherrypy.quickstart(root)
+    cherrypy.quickstart(http.wire())
 
 
 if __name__ == '__main__':

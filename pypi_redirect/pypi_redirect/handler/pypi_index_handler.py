@@ -1,4 +1,4 @@
-from handler_utils import fetch_and_parse_index, ensure_index
+from _utils import fetch_and_parse_index, ensure_index, ensure_python_dir
 
 
 # TODO: add logging (in a test-friendly way)
@@ -14,11 +14,15 @@ class PyPIIndexHandler(object):
         self.parse_index_fn = parse_index_fn
         self.build_index_fn = build_index_fn
 
+    @ensure_python_dir
     @ensure_index
     def handle(self, path, request, response):
-        package_name, = path
-
-        index_url = '{}/{}/'.format(self.pypi_base_url, package_name)
+        if len(path) == 2:
+            py, package_name = path
+            index_url = '{}/{}/'.format(self.pypi_base_url, package_name)
+        else:
+            package_name = ''
+            index_url = '{}/'.format(self.pypi_base_url)
 
         index_rows = fetch_and_parse_index(
             http_get_fn=self.http_get_fn,
