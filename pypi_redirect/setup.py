@@ -16,6 +16,6 @@ setup(
     license="Apache License 2.0",
     long_description=open('README.txt').read(),
     test_suite='nose.collector',
-    install_requires=['lxml', 'requests', 'cherrypy>=3.1'],
+    install_requires=['lxml', 'requests', 'CherryPy>=3.1'],
     tests_require=['lxml', 'nose>=1.2.1'],
 )
