@@ -20,7 +20,8 @@ def _parse_internal_links(base_url, html_root, package_path):
         if not _is_ascii(href):
             continue
         if href.endswith('/'):
-            rows[href] = None
+            if not _is_absolute_url(href):
+                rows[href] = None
         else:
             rows[link.text.strip()] = IndexRow(
                 download_url=_make_url_absolute(base_url, package_path, href),
