@@ -2,24 +2,24 @@ import cherrypy
 from pypi_redirect.handler._exception import HandlerException
 
 
-class Root(object):
+class PathLengthDispatcher(object):
     def __init__(
             self,
-            handlers,
+            handlers_indexed_by_path_length,
             invalid_path_handler):
-        self.handlers = handlers
+        self.handlers_indexed_by_path_length = handlers_indexed_by_path_length
         self.invalid_path_handler = invalid_path_handler
 
     @cherrypy.expose
     def default(self, *path):
         try:
-            return self.handlers[len(path)].handle(
+            return self.handlers_indexed_by_path_length[len(path)](
                 path=path,
                 request=cherrypy.request,
                 response=cherrypy.response)
 
         except IndexError:
-            return self.invalid_path_handler.handle(
+            return self.invalid_path_handler(
                 path=path,
                 request=cherrypy.request,
                 response=cherrypy.response)

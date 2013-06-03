@@ -1,4 +1,4 @@
-from pypi_redirect.handler._exception import http_404
+from _exception import http_404
 
 
 class InvalidPathHandler(object):

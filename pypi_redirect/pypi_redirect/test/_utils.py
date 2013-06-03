@@ -12,7 +12,7 @@ def read_index(filename):
 
 
 class FunctionStub(object):
-    def __init__(self, name, dummy_result, dummy_exception=None):
+    def __init__(self, name, dummy_result=None, dummy_exception=None):
         self.name = name
         self.dummy_result = dummy_result
         self.dummy_exception = dummy_exception

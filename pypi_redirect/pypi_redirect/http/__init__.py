@@ -4,10 +4,15 @@ from pypi_redirect.handler.invalid_path_handler import InvalidPathHandler
 from pypi_redirect.handler.pypi_index_handler import PyPIIndexHandler
 from pypi_redirect.handler.root_index_handler import RootIndexHandler
 from _utils import http_get
-from root import Root
+from path_length_dispatcher import PathLengthDispatcher
 
 
-def wire():
+def wire_dependencies():
+    """
+    PyPI redirect uses a dependency injection paradigm to better
+    facilitate testing. Rather than use a dependency injection
+    framework, we are manually injecting our dependencies here.
+    """
     pypi_base_url = 'https://pypi.python.org/simple'
 
     root_index_handler = RootIndexHandler(
@@ -26,12 +31,12 @@ def wire():
 
     invalid_path_handler = InvalidPathHandler()
 
-    root = Root(
-        handlers=(
-            root_index_handler,
-            pypi_index_handler,
-            pypi_index_handler,
-            file_handler),
+    root = PathLengthDispatcher(
+        handlers_indexed_by_path_length=(
+            root_index_handler.handle,  # len 0: ex: /
+            pypi_index_handler.handle,  # len 1: ex: /python/
+            pypi_index_handler.handle,  # len 2: ex: /python/nose/
+            file_handler.handle),       # len 3: ex: /python/nose/nose-1.0.tgz
         invalid_path_handler=invalid_path_handler)
 
     return root

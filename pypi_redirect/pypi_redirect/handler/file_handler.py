@@ -3,7 +3,6 @@ from _exception import http_404, http_302
 from _utils import fetch_and_parse_index, ensure_python_dir
 
 
-# TODO: add logging (in a test-friendly way)
 class FileHandler(object):
     def __init__(self, pypi_base_url, http_get_fn, parse_index_fn):
         self.pypi_base_url = pypi_base_url

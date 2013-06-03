@@ -14,7 +14,7 @@ def run_server():
     to:
         https://pypi.python.org/<path-to-filename>
     """
-    cherrypy.quickstart(http.wire())
+    cherrypy.quickstart(http.wire_dependencies())
 
 
 if __name__ == '__main__':

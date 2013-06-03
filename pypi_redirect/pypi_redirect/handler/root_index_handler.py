@@ -1,8 +1,7 @@
 from collections import OrderedDict
-from pypi_redirect.handler._utils import ensure_index
+from _utils import ensure_index
 
 
-# TODO: add logging (in a test-friendly way)
 class RootIndexHandler(object):
     def __init__(self, build_index_fn):
         self.build_index_fn = build_index_fn
