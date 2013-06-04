@@ -54,6 +54,7 @@ def get_options_from_config_file_and_args(config_file_path=None,options_override
     parser.add_argument('--clean', '--veclean', action='store_true')
     parser.add_argument('--run', default=None)
     parser.add_argument('--script', default=None)
+    parser.add_argument('--noupdate', '--venoupdate', '-`', action='store_true')
     parser.add_argument('--requirements_file', '-r', default=None)
     parser.add_argument('--requirement_specifiers', default=None)
     parser.add_argument('--installed_list_file', default=None)
@@ -626,19 +627,38 @@ def make_platform_helpers():
                 f.write('set {}=\n'.format(original_env_var.upper()))            
             else:
                 f.write('set {}={}\n'.format(original_env_var.upper(), original_env_vars[original_env_var]))
-        f.close()    
+        f.close() 
+        
+def _handle_run_script_nested_arguments(options):           
+    # Special case of "nested" arguments when doing a run or script.
+
+    # Can pass in some arguments as an argument inside of --run or --script
+    # and they will have the same effect as passing them directly to this
+    # script.
+    look_for_args = {'--veclean': 'clean', '--venoupdate': 'noupdate', '-`': 'noupdate'}    
     
+    run_script_args = options.run if options.run is not None else options.script
+    
+    # No --run or --script was specified.
+    if run_script_args is None:
+        return
+
+    for look_for_arg in look_for_args.keys():
+        if look_for_arg in run_script_args.split():
+            setattr(options, look_for_args[look_for_arg], True)        
+
+        if options.run:
+            options.run = options.run.replace(look_for_arg, '')
+
+        if options.script:
+            options.script = options.script.replace(look_for_arg, '')
+
 
 def main(config_file_path=None, options_overrides={}):
     options = get_options_from_config_file_and_args(config_file_path, options_overrides)
 
     # Special case of "nested" arguments when doing a run or script.
-    # Can pass in '--veclean' as an argument inside of --run or --script,
-    # which will cause the virtual environment to be cleaned (the same as
-    # when passing --clean directly into the script).
-    if options.run is not None and '--veclean' in options.run.split():
-        options.clean = True
-        options.run = options.run.replace('--veclean', '')
+    _handle_run_script_nested_arguments(options)
 
     # Set virtualenv package name to a default. Don't currently see a need
     # for this to be configurable
@@ -675,25 +695,27 @@ def main(config_file_path=None, options_overrides={}):
 
         # Choose the pip tool location based on if this is a virtualenv install
         # or a site-packages install            
-        piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
         if options.sitepkg_install:
             piptool = os.path.join(sys.prefix, 'Scripts', 'pip')            
+        else:
+            piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
             
         # Always install a copy of ourselves, even if no one asked for us.
-        p = subprocess.Popen(
-            '"{}" install {} {}=={}'.format(piptool,
-                                            _get_pip_install_args(options),
-                                            VIRTUALENV_UTIL_PACKAGE_NAME,
-                                            version()))                                                       
-        p.wait()                                                       
+        if not options.noupdate:
+            p = subprocess.Popen(
+                '"{}" install {} {}=={}'.format(piptool,
+                                                _get_pip_install_args(options),
+                                                VIRTUALENV_UTIL_PACKAGE_NAME,
+                                                version()))                                                       
+            p.wait()                                                       
         
-        if p.returncode != 0:
-            raise RuntimeError('Failed to install package {} via pip, check pip output for more information'.format(VIRTUALENV_UTIL_PACKAGE_NAME)) 
+            if p.returncode != 0:
+                raise RuntimeError('Failed to install package {} via pip, check pip output for more information'.format(VIRTUALENV_UTIL_PACKAGE_NAME)) 
              
 
         # If requirements were specified as a list of requirements
         # specifiers separated by commas, install each package individually.
-        if options.requirement_specifiers:
+        if options.requirement_specifiers and not options.noupdate:
             for requirement in options.requirement_specifiers.split(','):
                 p = subprocess.Popen(
                     '"{}" install {} {}'.format(piptool,
@@ -706,7 +728,7 @@ def main(config_file_path=None, options_overrides={}):
             
         # Run pip to install / update the required
         # tool packages listed in the requirements.txt file.
-        if options.requirements_file:
+        if options.requirements_file and not options.noupdate:
             p = subprocess.Popen(
                 '"{}" install {} -r {}'.format(piptool,
                                                _get_pip_install_args(options),
@@ -731,24 +753,33 @@ def main(config_file_path=None, options_overrides={}):
         if options.helper_scripts:
             _create_ve_helper_scripts(options)        
 
-    # TODO: Add support for sitepkg install?
     if options.run is not None:
+        if options.sitepkg_install:
+            python_executable = sys.executable 
+        else:
+            python_executable = os.path.join(options.virtualenv_path, 'Scripts', 'python.exe')
+    
         # Run the file using the Python executable in the virtualenv.
-        p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe') + ' ' + options.run)
+        p = subprocess.Popen(python_executable + ' ' + options.run)
         sys.exit(p.wait())
     elif options.script is not None:
+        if options.sitepkg_install:
+            scripts_dir = os.path.join(sys.prefix, 'Scripts') 
+        else:
+            scripts_dir = os.path.join(options.virtualenv_path, 'Scripts')
+    
         # Run a script, assumed to be located in the Scripts directory.                   
-        # of the virtualenv.  Note that the script name cannot have any spaces
-        # using the logic below.             
+        # Note that the script name cannot have any spaces using the logic 
+        # below.             
         if len(options.script.split()) > 1:
-            p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', options.script.split()[0]) + ' ' + ' '.join(options.script.split()[1:]))
+            p = subprocess.Popen(os.path.join(scripts_dir, options.script.split()[0]) + ' ' + ' '.join(options.script.split()[1:]))
         else:            
-            p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', options.script))
+            p = subprocess.Popen(os.path.join(scripts_dir, options.script))
         sys.exit(p.wait())
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Setup and update a Python virtualenv for a firmware view')
+    parser = argparse.ArgumentParser(description='Create / update a Python virtualenv')
     parser.add_argument('--cfg_file')
     parsed, remaining_args = parser.parse_known_args(sys.argv[1:])
     sys.argv = [sys.argv[0]] + remaining_args
