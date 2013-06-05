@@ -55,3 +55,6 @@ version.txt
 
 # Anything in a Python virtualenv
 */_python_virtualenv/*
+
+# Non-template configuration files
+pypi_redirect/server_config/pypi_redirect.conf

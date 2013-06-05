@@ -33,6 +33,8 @@ def run_server(primordial_logger=None, enable_file_logging=False):
         script_name='/',
         config=cherrypy_config_path)
 
+    cherrypy.config.update(cherrypy_config_path)
+
     if enable_file_logging:
         _enable_file_logging(app, primordial_logger=primordial_logger)
 

@@ -1,5 +1,5 @@
 import cherrypy
-from pypi_redirect.server_app.handler._exception import HandlerException
+from ..handler._exception import HandlerException
 
 
 class PathLengthDispatcher(object):

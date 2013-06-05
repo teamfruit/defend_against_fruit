@@ -1,8 +1,9 @@
 [global]
-log.screen = False
 engine.autoreload.on = False
 engine.SIGHUP = None
 engine.SIGTERM = None
+server.socket_host = "127.0.0.1"
+server.socket_port = 9292
 
 [/]
 log.rot_error_file = "error.log"

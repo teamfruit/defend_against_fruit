@@ -3,7 +3,7 @@ import logging
 import cherrypy
 import win32serviceutil
 import win32service
-from pypi_redirect.server_app.launcher import run_server
+from ..server_app.launcher import run_server
 
 
 class PyPIWindowsService(win32serviceutil.ServiceFramework):

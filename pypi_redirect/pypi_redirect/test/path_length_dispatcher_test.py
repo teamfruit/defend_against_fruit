@@ -1,8 +1,7 @@
 from nose.tools import eq_
-from pypi_redirect.server_app.handler._exception import HandlerException
-from pypi_redirect.server_app.http.path_length_dispatcher import \
-    PathLengthDispatcher
-from pypi_redirect.test._utils import FunctionStub
+from ..server_app.handler._exception import HandlerException
+from ..server_app.http.path_length_dispatcher import PathLengthDispatcher
+from _utils import FunctionStub
 
 
 def test_all_permutations():
