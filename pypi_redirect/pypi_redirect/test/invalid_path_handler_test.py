@@ -1,5 +1,6 @@
 from _utils import assert_http_not_found
-from pypi_redirect.handler.invalid_path_handler import InvalidPathHandler
+from pypi_redirect.server_app.handler.invalid_path_handler import \
+    InvalidPathHandler
 
 
 def typical_usage_test():

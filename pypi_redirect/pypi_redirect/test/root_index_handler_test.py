@@ -3,7 +3,8 @@ from functools import partial
 from nose.tools import eq_
 from _utils import RequestStub, FunctionStub, ResponseStub
 from _utils import assert_http_redirect
-from pypi_redirect.handler.root_index_handler import RootIndexHandler
+from pypi_redirect.server_app.handler.root_index_handler import \
+    RootIndexHandler
 
 
 def empty_path_is_index_test():

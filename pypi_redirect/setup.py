@@ -18,4 +18,11 @@ setup(
     test_suite='nose.collector',
     install_requires=['lxml', 'requests', 'CherryPy>=3.1'],
     tests_require=['lxml', 'nose>=1.2.1'],
+    data_files=[
+        ('pypi_redirect/config',
+         ['server_config/pypi_redirect.conf.template'])],
+    entry_points={
+        'console_scripts': [
+            'pypi_redirect_service '
+            '= pypi_redirect.daemon.pypi_windows_service:main']}
 )

@@ -1,0 +1,14 @@
+[global]
+log.screen = False
+engine.autoreload.on = False
+engine.SIGHUP = None
+engine.SIGTERM = None
+
+[/]
+log.rot_error_file = "error.log"
+log.rot_error_maxBytes = 1000000
+log.rot_error_backupCount = 4
+
+log.rot_access_file = "access.log"
+log.rot_access_maxBytes = 1000000
+log.rot_access_backupCount = 2

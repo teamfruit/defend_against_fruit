@@ -1,4 +1,5 @@
 include *.txt
 include *.py
+include server_config/*.conf.template
 exclude virtualenv_util_bootstrap*.py
 exclude ci_config

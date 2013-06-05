@@ -1,10 +1,11 @@
-from pypi_redirect import index_builder, index_parser
-from pypi_redirect.handler.file_handler import FileHandler
-from pypi_redirect.handler.invalid_path_handler import InvalidPathHandler
-from pypi_redirect.handler.pypi_index_handler import PyPIIndexHandler
-from pypi_redirect.handler.root_index_handler import RootIndexHandler
-from _utils import http_get
-from path_length_dispatcher import PathLengthDispatcher
+import index_builder
+import index_parser
+from handler.file_handler import FileHandler
+from handler.invalid_path_handler import InvalidPathHandler
+from handler.pypi_index_handler import PyPIIndexHandler
+from handler.root_index_handler import RootIndexHandler
+from http._utils import http_get
+from http.path_length_dispatcher import PathLengthDispatcher
 
 
 def wire_dependencies():

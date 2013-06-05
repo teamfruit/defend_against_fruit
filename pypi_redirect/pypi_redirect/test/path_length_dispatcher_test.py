@@ -1,6 +1,7 @@
 from nose.tools import eq_
-from pypi_redirect.handler._exception import HandlerException
-from pypi_redirect.http.path_length_dispatcher import PathLengthDispatcher
+from pypi_redirect.server_app.handler._exception import HandlerException
+from pypi_redirect.server_app.http.path_length_dispatcher import \
+    PathLengthDispatcher
 from pypi_redirect.test._utils import FunctionStub
 
 
@@ -60,9 +61,8 @@ class TestHelper(object):
                 eq_(actual_result, self.normal_handlers[n].dummy_result)
 
             except _UniqueException:
-                assert (
-                    self.normal_handlers_do_throw_exceptions,
-                    'Caught unexpected exception from normal handler')
+                assert self.normal_handlers_do_throw_exceptions, \
+                    'Caught unexpected exception from normal handler'
 
     def _assert_exception_handler_behavior(self):
         try:
@@ -71,9 +71,8 @@ class TestHelper(object):
             eq_(actual_result, self.exception_handler.dummy_result)
 
         except _UniqueException:
-            assert (
-                self.exception_handler_does_throw_exception,
-                'Caught unexpected exception from invalid path handler')
+            assert self.exception_handler_does_throw_exception, \
+                'Caught unexpected exception from invalid path handler'
 
     def perform_assertions(self):
         self._assert_normal_handler_behavior()

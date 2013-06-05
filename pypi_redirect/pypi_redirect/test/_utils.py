@@ -1,6 +1,6 @@
 import os
 from nose.tools import eq_
-from pypi_redirect.handler._exception import HandlerException
+from pypi_redirect.server_app.handler._exception import HandlerException
 
 
 def read_index(filename):
@@ -54,10 +54,9 @@ def assert_http_not_found(run_handler_fn, failure_description):
     except HandlerException as e:
         kwargs = e.wrapped_exception.keywords
 
-        assert (
-            'status' in kwargs,
-            'No http status specified '
-            '(expected `status` keyword)')
+        assert 'status' in kwargs, \
+            'No http status specified ' \
+            '(expected `status` keyword)'
 
         eq_(kwargs['status'], 404,
             msg='Expected 404 http status')
@@ -80,15 +79,13 @@ def assert_http_redirect(
     except HandlerException as e:
         kwargs = e.wrapped_exception.keywords
 
-        assert (
-            'urls' in kwargs,
-            'No URL specified for redirection '
-            '(expected `urls` keyword argument)')
+        assert 'urls' in kwargs, \
+            'No URL specified for redirection ' \
+            '(expected `urls` keyword argument)'
 
-        assert (
-            'status' in kwargs,
-            'No redirect status specified '
-            '(expected `status` keyword argument)')
+        assert 'status' in kwargs, \
+            'No redirect status specified ' \
+            '(expected `status` keyword argument)'
 
         eq_(kwargs['urls'], expected_url,
             msg='Incorrect redirection URL')

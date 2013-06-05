@@ -4,7 +4,8 @@ from nose.tools import eq_
 from requests import RequestException
 from _utils import RequestStub, ResponseStub, FunctionStub
 from _utils import assert_http_redirect, assert_http_not_found
-from pypi_redirect.handler.pypi_index_handler import PyPIIndexHandler
+from pypi_redirect.server_app.handler.pypi_index_handler import \
+    PyPIIndexHandler
 
 
 def typical_usage_as_index_test():

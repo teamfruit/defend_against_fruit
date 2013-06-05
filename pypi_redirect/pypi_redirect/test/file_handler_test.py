@@ -3,8 +3,8 @@ from functools import partial
 from lxml.etree import ParseError
 from nose.tools import eq_
 from requests import RequestException
-from pypi_redirect.handler.file_handler import FileHandler
-from pypi_redirect.index_parser import IndexRow, Checksums
+from pypi_redirect.server_app.handler.file_handler import FileHandler
+from pypi_redirect.server_app.index_parser import IndexRow, Checksums
 from _utils import FunctionStub, RequestStub, ResponseStub
 from _utils import assert_http_redirect, assert_http_not_found
 
