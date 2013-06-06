@@ -3,8 +3,8 @@ from functools import partial
 from lxml.etree import ParseError
 from nose.tools import eq_
 from requests import RequestException
-from ..server_app.handler.file_handler import FileHandler
-from ..server_app.index_parser import IndexRow, Checksums
+from ...server_app.handler.file_handler import FileHandler
+from ...server_app.index_parser import IndexRow, Checksums
 from _utils import FunctionStub, RequestStub, ResponseStub
 from _utils import assert_http_redirect, assert_http_not_found
 

@@ -1,6 +1,6 @@
 from nose.tools import eq_
-from ..server_app.handler._exception import HandlerException
-from ..server_app.http.path_length_dispatcher import PathLengthDispatcher
+from ...server_app.handler._exception import HandlerException
+from ...server_app.http.path_length_dispatcher import PathLengthDispatcher
 from _utils import FunctionStub
 
 

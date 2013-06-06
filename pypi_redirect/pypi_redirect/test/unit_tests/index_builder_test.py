@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from nose.tools import eq_
 from _utils import read_index
-from ..server_app import index_builder
-from ..server_app.index_parser import IndexRow, Checksums
+from ...server_app import index_builder
+from ...server_app.index_parser import IndexRow, Checksums
 
 
 def typical_index_test():
