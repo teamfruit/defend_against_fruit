@@ -16,7 +16,7 @@ setup(
     license="Apache License 2.0",
     long_description=open('README.txt').read(),
     test_suite='nose.collector',
-    install_requires=['lxml', 'requests', 'CherryPy>=3.1'],
+    install_requires=['lxml', 'requests', 'CherryPy>=3.1', 'pywin32>=217'],
     tests_require=['lxml', 'nose>=1.2.1'],
     data_files=[
         ('pypi_redirect/config',
