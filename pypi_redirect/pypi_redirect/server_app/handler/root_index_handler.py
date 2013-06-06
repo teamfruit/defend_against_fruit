@@ -9,7 +9,6 @@ class RootIndexHandler(object):
     @ensure_index
     def handle(self, path, request, response):
         html_str = self.build_index_fn(
-            package_path='/',
             index_rows=OrderedDict([('python/', None)]))
 
         return html_str

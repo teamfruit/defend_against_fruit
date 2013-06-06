@@ -39,7 +39,6 @@ class PyPIIndexHandler(object):
             package_path=package_name)
 
         rebuilt_html_str = self.build_index_fn(
-            package_path=package_name,
             index_rows=index_rows)
 
         return rebuilt_html_str
