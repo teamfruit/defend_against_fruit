@@ -108,7 +108,6 @@ def _check_main_index_path(
         msg='Handler did not return builder result')
 
     builder_stub.assert_single_kw_call(expected_kwargs={
-        'package_path': package_path,
         'index_rows': parser_response})
 
     parser_stub.assert_single_kw_call(expected_kwargs={

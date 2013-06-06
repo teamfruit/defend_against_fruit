@@ -46,5 +46,4 @@ def _check_root_path(path, is_index):
         msg='Handler did not return builder result')
 
     builder_stub.assert_single_kw_call(expected_kwargs={
-        'package_path': '/',
         'index_rows': OrderedDict([('python/', None)])})
