@@ -1,6 +1,7 @@
 from logging import handlers, DEBUG
 import logging
 import os
+import shutil
 import sys
 import cherrypy
 from dependency_injection import wire_dependencies
@@ -23,10 +24,7 @@ def run_server(primordial_logger=None, enable_file_logging=False):
 
     root = wire_dependencies()
 
-    cherrypy_config_path = _config_path('pypi_redirect.conf')
-
-    primordial_logger.info(
-        'CherryPy config path: {}'.format(cherrypy_config_path))
+    cherrypy_config_path = _get_cherrypy_config_file(primordial_logger)
 
     app = cherrypy.tree.mount(
         root,
@@ -40,6 +38,31 @@ def run_server(primordial_logger=None, enable_file_logging=False):
 
     cherrypy.engine.start()
     cherrypy.engine.block()
+
+
+def _get_cherrypy_config_file(primordial_logger):
+    cherrypy_config_path = _config_path('pypi_redirect.conf')
+
+    if not os.path.exists(cherrypy_config_path):
+        template_path = _config_path('pypi_redirect.conf.template')
+
+        assert os.path.exists(template_path), \
+            'Neither the CherryPy config file ("{}") nor a suitable ' \
+            'template ("{}") were found.'.format(
+                cherrypy_config_path,
+                template_path)
+
+        shutil.copyfile(template_path, cherrypy_config_path)
+
+        primordial_logger.info(
+            'Created CherryPy config file "{}" from template "{}"'.format(
+                cherrypy_config_path,
+                template_path))
+
+    primordial_logger.info(
+        'Using CherryPy config file "{}"'.format(cherrypy_config_path))
+
+    return cherrypy_config_path
 
 
 def _sys_prefix_path(*path):
