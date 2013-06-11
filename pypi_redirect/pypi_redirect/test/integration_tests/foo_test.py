@@ -1,24 +1,9 @@
-from functools import partial
-import _fixture_manager
-
-
-class FixtureFoo(object):
-    def __init__(self, other, extra):
-        pass
-
-    def setup(self):
-        print 'FixtureFoo.setup'
-
-    def teardown(self):
-        print 'FixtureFoo.teardown'
-
-
 def setup_module():
-    _fixture_manager.activate_fixture(partial(FixtureFoo, 'other', 'extra'))
+    print 'FixtureFoo.setup'
 
 
 def teardown_module():
-    _fixture_manager.teardown()
+    print 'FixtureFoo.teardown'
 
 
 def foo1_test():

@@ -1,20 +1,9 @@
-import _fixture_manager
-
-
-class FixtureBaz(object):
-    def setup(self):
-        print 'FixtureBaz.setup'
-
-    def teardown(self):
-        print 'FixtureBaz.teardown'
-
-
 def setup_module():
-    _fixture_manager.activate_fixture(FixtureBaz)
+    print 'FixtureBaz.setup'
 
 
 def teardown_module():
-    _fixture_manager.teardown()
+    print 'FixtureBaz.teardown'
 
 
 def baz1_test():
