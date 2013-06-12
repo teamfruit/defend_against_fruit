@@ -7,15 +7,37 @@ Checksums = namedtuple('Checksums', ('md5', 'sha1'))
 IndexRow = namedtuple('IndexRow', ('download_url', 'checksums'))
 
 
-def parse(base_url, package_path, html_str):
-    html_root = _parse_html(html_str)
-    rows = _parse_internal_links(base_url, html_root, package_path)
+def _all_internal_links_and_directories(html_root):
+    return html_root.xpath(
+        ".//a["
+        "  @rel = 'internal'"
+        "  or "
+        "  ("
+        "    substring(@href, 1, string-length(text())) = text()"
+        "    and "
+        "    substring(@href, string-length(@href)) = '/'"
+        "  )"
+        "]")
+
+
+def parse(
+        base_url,
+        package_path,
+        html_str,
+        strict_html=True,
+        find_links_fn=_all_internal_links_and_directories):
+    html_root = _parse_html(html_str, strict_html)
+    rows = _parse_internal_links(
+        base_url,
+        html_root,
+        package_path,
+        find_links_fn)
     return rows
 
 
-def _parse_internal_links(base_url, html_root, package_path):
+def _parse_internal_links(base_url, html_root, package_path, find_links_fn):
     rows = OrderedDict()
-    for link in _all_internal_links_and_directories(html_root):
+    for link in find_links_fn(html_root):
         href = link.attrib['href']
         if not _is_ascii(href):
             continue
@@ -37,23 +59,10 @@ def _is_ascii(s):
         return False
 
 
-def _parse_html(html_str):
-    parser = etree.HTMLParser(recover=False)
+def _parse_html(html_str, strict_html):
+    parser = etree.HTMLParser(recover=not strict_html)
     html_root = etree.fromstring(html_str, parser)
     return html_root
-
-
-def _all_internal_links_and_directories(html_root):
-    return html_root.xpath(
-        ".//a["
-        "  @rel = 'internal'"
-        "  or "
-        "  ("
-        "    substring(@href, 1, string-length(text())) = text()"
-        "    and "
-        "    substring(@href, string-length(@href)) = '/'"
-        "   )"
-        "]")
 
 
 def _is_absolute_url(url):
