@@ -12,7 +12,8 @@ setup(
     url='https://github.com/teamfruit/fruit_dist',
     author='Team Fruit',
     author_email='defend.against.fruit@gmail.com',
-    packages=find_packages(exclude=["*.tests", "*.tests.*"]),
+    packages=find_packages(
+        exclude=["*.tests", "*.tests.*", "*.test", "*.test.*"]),
     license="Apache License 2.0",
     long_description=open('README.txt').read(),
     test_suite='nose.collector',

@@ -1,4 +1,4 @@
-from _util import _return_when_web_service_up
+from _utils import return_when_web_service_up
 
 
 class ProxyTestHelper(object):
@@ -6,6 +6,6 @@ class ProxyTestHelper(object):
         self.base_url = base_url
 
     def block_until_up(self, attempts=5):
-        _return_when_web_service_up(
+        return_when_web_service_up(
             health_check_url=self.base_url,
             attempts=attempts)

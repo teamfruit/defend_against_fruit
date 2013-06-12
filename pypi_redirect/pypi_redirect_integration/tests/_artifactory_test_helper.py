@@ -1,5 +1,5 @@
 import requests
-from _util import _return_when_web_service_up
+from _utils import return_when_web_service_up
 
 
 class ArtifactoryTestHelper(object):
@@ -20,6 +20,6 @@ class ArtifactoryTestHelper(object):
 
     def block_until_up(self, attempts=5):
         url = '/'.join((self.base_url, 'api/system/ping'))
-        _return_when_web_service_up(
+        return_when_web_service_up(
             health_check_url=url,
             attempts=attempts)

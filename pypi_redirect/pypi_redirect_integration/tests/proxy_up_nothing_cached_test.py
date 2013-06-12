@@ -1,10 +1,12 @@
-from functools import partial
+import subprocess
 import requests
+import sys
+from functools import partial
 from nose.tools import eq_, with_setup
 from pypi_redirect.server_app import index_parser
 from _artifactory_test_helper import ArtifactoryTestHelper
 from _proxy_test_helper import ProxyTestHelper
-from _util import _assert_services_up
+from _utils import assert_services_up
 
 
 def _find_all_links(html_root):
@@ -83,7 +85,7 @@ def _get_sphinx_from_artif_and_validate(
 
 
 def _get_and_validate_files(get_and_validate_fn):
-    ### 1. Package not cached
+    ### 1. Package not cached.
 
     # a. Verify that getting the MD5 fails before the package is requested.
     get_and_validate_fn(checksum_ext='.md5', expect_md5_not_found=True)
@@ -168,8 +170,10 @@ class Fixture(object):
         return result
 
     def setup(self):
-        # TODO: start proxy
-        _assert_services_up(services=(
+        self.proxy_process = subprocess.Popen([
+            sys.executable, '-m', 'pypi_redirect'])
+
+        assert_services_up(services=(
             self.__artif_test_helper,
             self.__proxy_test_helper))
 
@@ -177,8 +181,7 @@ class Fixture(object):
         self.flush_caches()
 
     def teardown(self):
-        # TODO: stop proxy
-        pass
+        self.proxy_process.terminate()
 
 
 fixture = Fixture(
