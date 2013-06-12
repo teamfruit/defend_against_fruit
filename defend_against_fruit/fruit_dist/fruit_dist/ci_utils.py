@@ -5,7 +5,7 @@ from fruit_dist.build_info_utils import collect_env_info
 from fruit_dist.ci_single_module_utils import execute_sdist_run, deploy_module
 
 
-def standard_sdist_run(submodule_order=None):
+def standard_sdist_run(submodule_order=None, integration_tests_fn=None):
     args = _parse_args(sys.argv[1:])
 
     env_info = collect_env_info() if args.publish else None
@@ -15,17 +15,19 @@ def standard_sdist_run(submodule_order=None):
         execute_submodule_run(submodule_order)
         if args.publish:
             deploy_all_modules(
-                module_order=submodule_order, env_info=env_info, verify_cert=verify_cert)
+                module_order=submodule_order,
+                env_info=env_info,
+                verify_cert=verify_cert)
     else:
-        execute_sdist_run()
+        execute_sdist_run(integration_tests_fn=integration_tests_fn)
         if args.publish:
             deploy_module(env_info=env_info, verify_cert=verify_cert)
 
 
 def _parse_args(args=None):
     parser = argparse.ArgumentParser(
-        description='Continuous integration utility responsible for invoking the '
-                    'build system within a virtual environment')
+        description='Continuous integration utility responsible for invoking '
+                    'the build system within a virtual environment')
 
     parser.add_argument(
         '--publish',
