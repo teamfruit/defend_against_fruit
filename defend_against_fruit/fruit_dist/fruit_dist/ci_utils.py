@@ -13,13 +13,21 @@ def standard_sdist_run(submodule_order=None, integration_tests_fn=None):
 
     if submodule_order:
         execute_submodule_run(submodule_order)
+
+        if not args.skip_int_tests and integration_tests_fn:
+            integration_tests_fn()
+
         if args.publish:
             deploy_all_modules(
                 module_order=submodule_order,
                 env_info=env_info,
                 verify_cert=verify_cert)
     else:
-        execute_sdist_run(integration_tests_fn=integration_tests_fn)
+        execute_sdist_run()
+
+        if not args.skip_int_tests and integration_tests_fn:
+            integration_tests_fn()
+
         if args.publish:
             deploy_module(env_info=env_info, verify_cert=verify_cert)
 
@@ -38,5 +46,10 @@ def _parse_args(args=None):
         '--no-cert-verify',
         action='store_false',
         help='Do not verify authenticity of host cert when using SSL.')
+
+    parser.add_argument(
+        '--skip-int-tests',
+        action='store_true',
+        help='Skip all integration tests.')
 
     return parser.parse_args(args)

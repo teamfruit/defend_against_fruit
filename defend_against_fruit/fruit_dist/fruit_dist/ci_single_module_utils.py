@@ -19,7 +19,7 @@ def standard_develop_run():
     _execute_develop_run()
 
 
-def execute_sdist_run(integration_tests_fn=None):
+def execute_sdist_run():
     # Clean!
     _standard_clean()
 
@@ -31,10 +31,6 @@ def execute_sdist_run(integration_tests_fn=None):
 
     # Create sdist .tar.gz archive.
     build_sdist()
-
-    # Run integration tests if any are specified.
-    if integration_tests_fn:
-        integration_tests_fn()
 
 
 def _extract_single_module_from_build_info(build_info):
