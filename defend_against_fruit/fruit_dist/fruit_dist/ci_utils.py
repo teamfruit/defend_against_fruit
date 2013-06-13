@@ -5,7 +5,7 @@ from fruit_dist.build_info_utils import collect_env_info
 from fruit_dist.ci_single_module_utils import execute_sdist_run, deploy_module
 
 
-def standard_sdist_run(submodule_order=None):
+def standard_sdist_run(submodule_order=None, integration_tests_fn=None):
     args = _parse_args(sys.argv[1:])
 
     env_info = collect_env_info() if args.publish else None
@@ -13,19 +13,29 @@ def standard_sdist_run(submodule_order=None):
 
     if submodule_order:
         execute_submodule_run(submodule_order)
+
+        if not args.skip_int_tests and integration_tests_fn:
+            integration_tests_fn()
+
         if args.publish:
             deploy_all_modules(
-                module_order=submodule_order, env_info=env_info, verify_cert=verify_cert)
+                module_order=submodule_order,
+                env_info=env_info,
+                verify_cert=verify_cert)
     else:
         execute_sdist_run()
+
+        if not args.skip_int_tests and integration_tests_fn:
+            integration_tests_fn()
+
         if args.publish:
             deploy_module(env_info=env_info, verify_cert=verify_cert)
 
 
 def _parse_args(args=None):
     parser = argparse.ArgumentParser(
-        description='Continuous integration utility responsible for invoking the '
-                    'build system within a virtual environment')
+        description='Continuous integration utility responsible for invoking '
+                    'the build system within a virtual environment')
 
     parser.add_argument(
         '--publish',
@@ -36,5 +46,10 @@ def _parse_args(args=None):
         '--no-cert-verify',
         action='store_false',
         help='Do not verify authenticity of host cert when using SSL.')
+
+    parser.add_argument(
+        '--skip-int-tests',
+        action='store_true',
+        help='Skip all integration tests.')
 
     return parser.parse_args(args)
