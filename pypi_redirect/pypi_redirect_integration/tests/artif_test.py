@@ -2,18 +2,16 @@ from functools import partial
 from nose.tools import eq_, with_setup
 from _fixture import create_fixture
 from _utils import get_sphinx_from_url_and_validate, assert_sphinx_packages
-from _utils import assert_services_up
+from _proxy_test_helper import proxy_brought_down
 
 
 fixture = create_fixture()
 
 
 def setup_module():
+    fixture.artif.block_until_up()
     fixture.proxy.start()
-
-    assert_services_up(services=(
-        fixture.artif,
-        fixture.proxy))
+    fixture.proxy.block_until_up()
 
     # These tests assume nothing is cached in Artifactory.
     fixture.artif.flush_caches()
@@ -98,3 +96,30 @@ def _get_and_validate_files(get_and_validate_fn):
 
     # c. Get the cached package again and verify that it still looks the same.
     get_and_validate_fn()
+
+    ### 3. With proxy down, try the above again.
+
+    with proxy_brought_down(fixture.proxy):
+        # a. Verify that getting the MD5 succeeds even when the proxy is down.
+        get_and_validate_fn(checksum_ext='.md5')
+
+        # b. Verify that getting the SHA1 *still* fails after the package is
+        #    cached and the proxy is down.
+        get_and_validate_fn(checksum_ext='.sha1')
+
+        # c. Verify that getting the cached package works with no proxy.
+        get_and_validate_fn()
+
+        ### 4. With proxy down and caches flushed, all should be 404s.
+
+        fixture.artif.flush_caches()
+
+        # a. Verify that getting the MD5 succeeds even when the proxy is down.
+        get_and_validate_fn(expect_md5_not_found=True, checksum_ext='.md5')
+
+        # b. Verify that getting the SHA1 *still* fails after the package is
+        #    cached and the proxy is down.
+        get_and_validate_fn(checksum_ext='.sha1')
+
+        # c. Verify that getting the cached package works with no proxy.
+        get_and_validate_fn(expect_package_not_found=True)

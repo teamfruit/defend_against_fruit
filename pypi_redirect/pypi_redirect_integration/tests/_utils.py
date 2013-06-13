@@ -4,11 +4,6 @@ from nose.tools import eq_
 import requests
 
 
-def assert_services_up(services):
-    for s in services:
-        s.block_until_up()
-
-
 def return_when_web_service_up(health_check_url, attempts=5):
     while True:
         try:
@@ -27,6 +22,22 @@ def return_when_web_service_up(health_check_url, attempts=5):
         sleep(1)
 
 
+def return_when_web_service_down(health_check_url, attempts=5):
+    while True:
+        try:
+            response = requests.get(health_check_url)
+            response.raise_for_status()
+        except requests.RequestException:
+            break
+
+        if attempts <= 0:
+            raise AssertionError(
+                'Still connected to {}'.format(health_check_url))
+
+        attempts -= 1
+        sleep(1)
+
+
 def find_all_links(html_root):
     return html_root.xpath(".//a")
 
@@ -34,6 +45,7 @@ def find_all_links(html_root):
 def get_sphinx_from_url_and_validate(
         get_url_fn,
         checksum_ext='',
+        expect_package_not_found=False,
         expect_md5_not_found=False,
         lowercase_package=False):
 
@@ -44,6 +56,8 @@ def get_sphinx_from_url_and_validate(
     validators = {
         # Non-checksum file validators
         '': (
+            _validate_404,
+        ) if expect_package_not_found else (
             partial(_validate_content_length, 2632059),
             partial(_validate_md5, expected_checksum),
         ),
