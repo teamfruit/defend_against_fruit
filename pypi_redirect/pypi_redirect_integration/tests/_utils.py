@@ -76,11 +76,15 @@ def get_sphinx_from_url_and_validate(
         ),
     }
 
+    # Use the specified validator. If an unrecognized extension is used, use
+    # the 404 validator.
+    validate_fn_list = validators.get(checksum_ext, (_validate_404,))
+
     _get_url_and_validate(
         get_url_fn=get_url_fn,
         package=package,
         filename=filename,
-        validate_fn_list=validators[checksum_ext])
+        validate_fn_list=validate_fn_list)
 
 
 def assert_sphinx_packages(listed_packages):

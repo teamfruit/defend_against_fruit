@@ -85,6 +85,9 @@ def _get_and_validate_files(get_and_validate_fn):
     # c. Request package to cache it.
     get_and_validate_fn()
 
+    # d. Verify that a non-existent file returns a 404.
+    get_and_validate_fn(expect_package_not_found=True, checksum_ext='.badext')
+
     ### 2. Package cached.
 
     # a. Verify that getting the MD5 succeeds after the package is cached.
