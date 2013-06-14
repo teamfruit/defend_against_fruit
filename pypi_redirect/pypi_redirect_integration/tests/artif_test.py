@@ -1,7 +1,8 @@
 from functools import partial
+from nose.plugins.attrib import attr
 from nose.tools import eq_, with_setup
 from _fixture import create_fixture
-from _utils import get_sphinx_from_url_and_validate, assert_sphinx_packages
+from _utils import assert_sphinx_packages
 from _proxy_test_helper import proxy_brought_down
 
 
@@ -31,7 +32,10 @@ def artif_pypi_root_no_slash_test():
     _assert_404_for_artif_path(path='python')
 
 
+@attr('known_artif_bug')
 def artif_pypi_root_test():
+    # TODO: test already cached should return just the cached packages
+
     _assert_404_for_artif_path(path='python/')
 
 
@@ -55,17 +59,12 @@ def artif_lowercase_sphinx_test():
 
 @with_setup(teardown=fixture.artif.flush_caches)
 def get_sphinx_package_test():
-    _get_and_validate_files(partial(
-        get_sphinx_from_url_and_validate,
-        get_url_fn=fixture.artif.get_repo_url))
+    _assert_package_retrieval_behavior(lowercase=False)
 
 
 @with_setup(teardown=fixture.artif.flush_caches)
 def get_lowercase_sphinx_package_test():
-    _get_and_validate_files(partial(
-        get_sphinx_from_url_and_validate,
-        get_url_fn=fixture.artif.get_repo_url,
-        lowercase_package=True))
+    _assert_package_retrieval_behavior(lowercase=True)
 
 
 def _assert_404_for_artif_path(path):
@@ -73,56 +72,93 @@ def _assert_404_for_artif_path(path):
     eq_(actual_result.status_code, 404)
 
 
-def _get_and_validate_files(get_and_validate_fn):
-    ### 1. Package not cached.
+def _validate_content_type(expected_type, result):
+    eq_(result.headers['Content-Type'], expected_type)
 
-    # a. Verify that getting the MD5 fails before the package is requested.
-    get_and_validate_fn(checksum_ext='.md5', expect_md5_not_found=True)
 
-    # b. Verify that getting the SHA1 fails before the package is requested.
-    get_and_validate_fn(checksum_ext='.sha1')
+def _validate_content_length(expected_length, result):
+    eq_(int(result.headers['content-length']), expected_length)
 
-    # c. Request package to cache it.
-    get_and_validate_fn()
 
-    # d. Verify that a non-existent file returns a 404.
-    get_and_validate_fn(expect_package_not_found=True, checksum_ext='.badext')
+def _validate_md5(expected_md5, result):
+    eq_(result.headers['x-checksum-md5'], expected_md5)
 
-    ### 2. Package cached.
 
-    # a. Verify that getting the MD5 succeeds after the package is cached.
-    get_and_validate_fn(checksum_ext='.md5')
+def _validate_text(expected_text, result):
+    eq_(result.text, expected_text)
 
-    # b. Verify that getting the SHA1 *still* fails after the package is
-    #    cached (the proxy is not returning an SHA1 checksum).
-    get_and_validate_fn(checksum_ext='.sha1')
 
-    # c. Get the cached package again and verify that it still looks the same.
-    get_and_validate_fn()
+def _validate_404(result):
+    eq_(result.status_code, 404)
 
-    ### 3. With proxy down, try the above again.
+
+def _get_path_and_perform_validations(path, validate_fn_list):
+    result = fixture.artif.get_repo_url(path)
+
+    for v in validate_fn_list:
+        v(result)
+
+
+class SphinxHelper(object):
+    def __init__(self, lowercase=False):
+        self._package_prefix = 'python/{}/'.format(
+            'sphinx' if lowercase else 'Sphinx')
+
+        self.expected_md5_checksum = '8f55a6d4f87fc6d528120c5d1f983e98'
+
+    def perform_md5_validations(self, validators):
+        _get_path_and_perform_validations(
+            self._package_prefix + '/Sphinx-1.1.3.tar.gz.md5',
+            validators)
+
+    def perform_sha1_validations(self, validators):
+        _get_path_and_perform_validations(
+            self._package_prefix + '/Sphinx-1.1.3.tar.gz.sha1',
+            validators)
+
+    def perform_primary_artifact_validations(self, validators):
+        _get_path_and_perform_validations(
+            self._package_prefix + '/Sphinx-1.1.3.tar.gz',
+            validators)
+
+
+def perform_package_not_cached_assertions(sphinx_helper):
+    sphinx_helper.perform_md5_validations((_validate_404,))
+    sphinx_helper.perform_sha1_validations((_validate_404,))
+    sphinx_helper.perform_primary_artifact_validations(
+        (partial(_validate_content_length, 2632059),
+         partial(_validate_md5, '8f55a6d4f87fc6d528120c5d1f983e98'),)
+    )
+
+
+def perform_package_cached_assertions(sphinx_helper):
+    sphinx_helper.perform_md5_validations((
+        partial(_validate_text, sphinx_helper.expected_md5_checksum),
+        partial(_validate_content_type, 'application/x-checksum'),
+    ))
+
+    sphinx_helper.perform_sha1_validations((_validate_404,))
+
+    sphinx_helper.perform_primary_artifact_validations((
+        partial(_validate_content_length, 2632059),
+        partial(_validate_md5, sphinx_helper.expected_md5_checksum),
+    ))
+
+
+def perform_package_unavailable_assertions(sphinx_helper):
+    sphinx_helper.perform_md5_validations((_validate_404,))
+    sphinx_helper.perform_sha1_validations((_validate_404,))
+    sphinx_helper.perform_primary_artifact_validations((_validate_404,))
+
+
+def _assert_package_retrieval_behavior(lowercase):
+    helper = SphinxHelper(lowercase=lowercase)
+
+    perform_package_not_cached_assertions(helper)
+    perform_package_cached_assertions(helper)
 
     with proxy_brought_down(fixture.proxy):
-        # a. Verify that getting the MD5 succeeds even when the proxy is down.
-        get_and_validate_fn(checksum_ext='.md5')
-
-        # b. Verify that getting the SHA1 *still* fails after the package is
-        #    cached and the proxy is down.
-        get_and_validate_fn(checksum_ext='.sha1')
-
-        # c. Verify that getting the cached package works with no proxy.
-        get_and_validate_fn()
-
-        ### 4. With proxy down and caches flushed, all should be 404s.
+        perform_package_cached_assertions(helper)
 
         fixture.artif.flush_caches()
-
-        # a. Verify that getting the MD5 succeeds even when the proxy is down.
-        get_and_validate_fn(expect_md5_not_found=True, checksum_ext='.md5')
-
-        # b. Verify that getting the SHA1 *still* fails after the package is
-        #    cached and the proxy is down.
-        get_and_validate_fn(checksum_ext='.sha1')
-
-        # c. Verify that getting the cached package works with no proxy.
-        get_and_validate_fn(expect_package_not_found=True)
+        perform_package_unavailable_assertions(helper)
