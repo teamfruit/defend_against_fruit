@@ -1,6 +1,5 @@
 import requests
-from pypi_redirect.server_app import index_parser
-from _utils import return_when_web_service_up, find_all_links
+from _utils import return_when_web_service_up, parse_listing
 
 
 class ArtifactoryTestHelper(object):
@@ -36,20 +35,7 @@ class ArtifactoryTestHelper(object):
 
     def parse_listing(self, path=''):
         url = self.__get_path(path)
-        result = requests.get(url)
-        result.raise_for_status()
-
-        html_str = result.text
-
-        # Our index_parser.parse is very well unit-tested.
-        rows = index_parser.parse(
-            base_url=url,
-            package_path='',
-            html_str=html_str,
-            strict_html=False,
-            find_links_fn=find_all_links)
-
-        return tuple(rows.iterkeys())
+        return parse_listing(url)
 
     def cache_packages(self, *paths):
         for p in paths:
