@@ -25,8 +25,7 @@ def proxy_root_no_trailing_slash_test():
     _assert_redirect_for_proxy_path(
         from_path='python',
         to_path='python/',
-        expected_code=301,
-    )
+        expected_code=301)
 
 
 def proxy_python_trailing_slash_test():
@@ -40,8 +39,7 @@ def proxy_python_no_trailing_slash_test():
     _assert_redirect_for_proxy_path(
         from_path='python',
         to_path='python/',
-        expected_code=301,
-    )
+        expected_code=301)
 
 
 def proxy_nose_trailing_slash_test():
@@ -54,8 +52,7 @@ def proxy_nose_no_trailing_slash_test():
     _assert_redirect_for_proxy_path(
         from_path='python/nose',
         to_path='python/nose/',
-        expected_code=301,
-    )
+        expected_code=301)
 
 
 def proxy_get_sphinx_uppercase_test():

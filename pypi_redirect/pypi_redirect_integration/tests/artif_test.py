@@ -14,31 +14,32 @@ def setup_module():
     fixture.proxy.start()
     fixture.proxy.block_until_up()
 
-    # These tests assume nothing is cached in Artifactory.
-    fixture.artif.flush_caches()
-
 
 def teardown_module():
+    fixture.artif.flush_caches()
     fixture.proxy.stop()
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_root_test():
     actual_result = fixture.artif.parse_listing()
     expected_result = ('python/',)
     eq_(actual_result, expected_result)
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_pypi_root_no_slash_test():
     _assert_404_for_artif_path(path='python')
 
 
 @attr('known_artif_bug')
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_pypi_root_nothing_cached_test():
     _assert_404_for_artif_path(path='python/')
 
 
 @attr('known_artif_bug')
-@with_setup(teardown=fixture.artif.flush_caches)
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_pypi_root_one_cached_test():
     fixture.artif.cache_packages(
         'python/Sphinx/Sphinx-1.1.3.tar.gz',
@@ -51,7 +52,7 @@ def artif_pypi_root_one_cached_test():
 
 
 @attr('known_artif_bug')
-@with_setup(teardown=fixture.artif.flush_caches)
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_pypi_root_three_cached_test():
     fixture.artif.cache_packages(
         'python/3to2/3to2-1.0.tar.gz',
@@ -67,28 +68,34 @@ def artif_pypi_root_three_cached_test():
     assert 'Sphinx/' in actual_result
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_uppercase_sphinx_no_slash_test():
     _assert_404_for_artif_path(path='python/Sphinx')
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_lowercase_sphinx_no_slash_test():
     _assert_404_for_artif_path(path='python/sphinx')
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_uppercase_sphinx_test():
     actual_result = fixture.artif.parse_listing(path='python/Sphinx/')
     assert_sphinx_packages(actual_result)
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_lowercase_sphinx_test():
     actual_result = fixture.artif.parse_listing(path='python/sphinx/')
     assert_sphinx_packages(actual_result)
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_invalid_package_test():
     _assert_404_for_artif_path(path='python/NotARealPackage/')
 
 
+@with_setup(setup=fixture.artif.flush_caches)
 def artif_invalid_file_test():
     _assert_404_for_artif_path(path='python/Sphinx/NotARealFile.tar.gz')
 

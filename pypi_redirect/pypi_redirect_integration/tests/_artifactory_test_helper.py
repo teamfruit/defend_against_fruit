@@ -20,7 +20,7 @@ class ArtifactoryTestHelper(object):
             attempts=attempts)
 
     def flush_caches(self):
-        url = '/'.join((self.base_url, self.pypi_cache_repo_id, 'python'))
+        url = '/'.join((self.base_url, self.pypi_cache_repo_id))
         result = requests.delete(url, auth=self.clean_credentials)
 
         # 404 is returned when there are no artifacts to remove - this is okay.
