@@ -50,3 +50,8 @@ class ArtifactoryTestHelper(object):
             find_links_fn=find_all_links)
 
         return tuple(rows.iterkeys())
+
+    def cache_packages(self, *paths):
+        for p in paths:
+            r = self.get_repo_url(path=p)
+            r.raise_for_status()

@@ -33,10 +33,38 @@ def artif_pypi_root_no_slash_test():
 
 
 @attr('known_artif_bug')
-def artif_pypi_root_test():
-    # TODO: test already cached should return just the cached packages
-
+def artif_pypi_root_nothing_cached_test():
     _assert_404_for_artif_path(path='python/')
+
+
+@attr('known_artif_bug')
+@with_setup(teardown=fixture.artif.flush_caches)
+def artif_pypi_root_one_cached_test():
+    fixture.artif.cache_packages(
+        'python/Sphinx/Sphinx-1.1.3.tar.gz',
+    )
+    actual_result = fixture.artif.parse_listing(path='python/')
+
+    eq_(len(actual_result), 2)
+    assert '../' in actual_result
+    assert 'Sphinx/' in actual_result
+
+
+@attr('known_artif_bug')
+@with_setup(teardown=fixture.artif.flush_caches)
+def artif_pypi_root_three_cached_test():
+    fixture.artif.cache_packages(
+        'python/3to2/3to2-1.0.tar.gz',
+        'python/nose/nose-1.3.0.tar.gz',
+        'python/Sphinx/Sphinx-1.1.3.tar.gz',
+    )
+    actual_result = fixture.artif.parse_listing(path='python/')
+
+    eq_(len(actual_result), 4)
+    assert '../' in actual_result
+    assert '3to2/' in actual_result
+    assert 'nose/' in actual_result
+    assert 'Sphinx/' in actual_result
 
 
 def artif_sphinx_no_slash_test():
@@ -55,6 +83,14 @@ def artif_sphinx_test():
 def artif_lowercase_sphinx_test():
     actual_result = fixture.artif.parse_listing(path='python/sphinx/')
     assert_sphinx_packages(actual_result)
+
+
+def artif_invalid_package_test():
+    _assert_404_for_artif_path(path='python/NotARealPackage/')
+
+
+def artif_invalid_file_test():
+    _assert_404_for_artif_path(path='python/Sphinx/NotARealFile.tar.gz')
 
 
 @with_setup(teardown=fixture.artif.flush_caches)

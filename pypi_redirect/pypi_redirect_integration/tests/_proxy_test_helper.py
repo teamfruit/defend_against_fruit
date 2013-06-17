@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import requests
 from _utils import return_when_web_service_up, return_when_web_service_down
 
 
@@ -23,6 +24,15 @@ class ProxyTestHelper(object):
         return_when_web_service_down(
             health_check_url=self.base_url,
             attempts=attempts)
+
+    def __get_path(self, path):
+        url = '/'.join((self.base_url, path.lstrip('/')))
+        return url
+
+    def get_repo_url(self, path='', only_headers=False):
+        url = self.__get_path(path)
+        result = requests.head(url) if only_headers else requests.get(url)
+        return result
 
 
 def proxy_brought_down(proxy):
