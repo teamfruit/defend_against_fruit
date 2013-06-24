@@ -1,8 +1,8 @@
 import argparse
 import sys
 from ci_multi_module_utils import execute_submodule_run, deploy_all_modules
-from fruit_dist.build_info_utils import collect_env_info
-from fruit_dist.ci_single_module_utils import execute_sdist_run, deploy_module
+from daf_fruit_dist.build_info_utils import collect_env_info
+from daf_fruit_dist.ci_single_module_utils import execute_sdist_run, deploy_module
 
 
 def standard_sdist_run(submodule_order=None, integration_tests_fn=None):

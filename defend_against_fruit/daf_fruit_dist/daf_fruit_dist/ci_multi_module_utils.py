@@ -2,7 +2,7 @@ import logging
 import os
 from file_management import DirectoryContextManager, compute_repo_path_from_module_name, get_submodule_info
 from exec_utils import run_ci_script
-from fruit_dist.build_info_utils import merge_module_info_files, build_info_to_text, get_deploy_functions
+from daf_fruit_dist.build_info_utils import merge_module_info_files, build_info_to_text, get_deploy_functions
 
 
 def execute_submodule_run(submodule_order):

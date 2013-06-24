@@ -3,9 +3,9 @@ import os
 
 from nose.tools import eq_
 
-from fruit_dist.build.constants import PYTHON_SDIST, PYTHON_EGG, PYTHON_FREEZE
-from fruit_dist.build.id import Id
-from fruit_dist.build.module import Module
+from daf_fruit_dist.build.constants import PYTHON_SDIST, PYTHON_EGG, PYTHON_FREEZE
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build.module import Module
 
 
 def assert_artifacts(module):

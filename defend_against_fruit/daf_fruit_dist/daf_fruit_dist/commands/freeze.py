@@ -2,7 +2,7 @@ import glob
 import os
 import subprocess
 from setuptools import Command
-from fruit_dist.file_management import compute_requirements_filename_full_path
+from daf_fruit_dist.file_management import compute_requirements_filename_full_path
 
 
 class freeze(Command):

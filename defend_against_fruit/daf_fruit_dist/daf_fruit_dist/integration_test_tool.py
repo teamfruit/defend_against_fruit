@@ -5,15 +5,15 @@ import logging
 import os
 import sys
 import textwrap
-from fruit_dist.artifactory.artifactory_rest import publish_build_info, build_promote
-from fruit_dist.build.agent import Agent
-from fruit_dist.build.build_info import BuildInfo
-from fruit_dist.build.build_retention import BuildRetention
-from fruit_dist.build.constants import PYTHON_SDIST, PYTHON_FREEZE
-from fruit_dist.build.id import Id
-from fruit_dist.build.module import Module
-from fruit_dist.build.promotion_request import PromotionRequest
-from fruit_dist.build_info_utils import build_info_to_text
+from daf_fruit_dist.artifactory.artifactory_rest import publish_build_info, build_promote
+from daf_fruit_dist.build.agent import Agent
+from daf_fruit_dist.build.build_info import BuildInfo
+from daf_fruit_dist.build.build_retention import BuildRetention
+from daf_fruit_dist.build.constants import PYTHON_SDIST, PYTHON_FREEZE
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build.module import Module
+from daf_fruit_dist.build.promotion_request import PromotionRequest
+from daf_fruit_dist.build_info_utils import build_info_to_text
 
 
 _OPTION_NAMES = {

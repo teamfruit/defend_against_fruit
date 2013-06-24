@@ -3,8 +3,8 @@ from nose.plugins.attrib import attr
 from nose.tools import raises, eq_
 from pip.exceptions import DistributionNotFound
 import pkg_resources
-from fruit_dist.build.constants import PYTHON_GROUP_ID
-from fruit_dist.pip_package_path_finder import PipPackagePathFinder, _requirement_finder
+from daf_fruit_dist.build.constants import PYTHON_GROUP_ID
+from daf_fruit_dist.pip_package_path_finder import PipPackagePathFinder, _requirement_finder
 
 
 @attr("integration")

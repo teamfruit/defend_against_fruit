@@ -1,5 +1,5 @@
 from nose.tools import eq_, raises
-from fruit_dist.url_utils import subtract_index_url
+from daf_fruit_dist.url_utils import subtract_index_url
 
 
 def validate_subtract_index_url(index_url, pkg_url, expected_tail):

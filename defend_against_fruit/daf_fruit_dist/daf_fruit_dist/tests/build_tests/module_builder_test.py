@@ -1,8 +1,8 @@
 import json
 from nose.tools import eq_
-from fruit_dist.build.constants import PYTHON_SDIST
-from fruit_dist.build.module import Module
-from fruit_dist.tests.build_tests import module_test_helper
+from daf_fruit_dist.build.constants import PYTHON_SDIST
+from daf_fruit_dist.build.module import Module
+from daf_fruit_dist.tests.build_tests import module_test_helper
 
 
 def typical_artifacts_no_dependencies_test():

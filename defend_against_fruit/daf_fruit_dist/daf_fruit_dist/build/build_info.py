@@ -1,7 +1,7 @@
-from fruit_dist.build.build_util import nested_object_from_json_data
-from fruit_dist.build.agent import Agent
-from fruit_dist.build.build_retention import BuildRetention
-from fruit_dist.build.module import Module
+from daf_fruit_dist.build.build_util import nested_object_from_json_data
+from daf_fruit_dist.build.agent import Agent
+from daf_fruit_dist.build.build_retention import BuildRetention
+from daf_fruit_dist.build.module import Module
 
 
 class BuildInfo(object):

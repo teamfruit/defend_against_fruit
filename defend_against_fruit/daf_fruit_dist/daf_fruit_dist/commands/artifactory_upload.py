@@ -2,9 +2,9 @@ from distutils.errors import DistutilsOptionError
 from distutils import log
 from functools import partial
 from setuptools import Command
-from fruit_dist.artifactory import artifactory_rest
-from fruit_dist.artifactory import repo_detail
-from fruit_dist.file_management import compute_repo_path_from_module_name
+from daf_fruit_dist.artifactory import artifactory_rest
+from daf_fruit_dist.artifactory import repo_detail
+from daf_fruit_dist.file_management import compute_repo_path_from_module_name
 
 
 class artifactory_upload(Command):

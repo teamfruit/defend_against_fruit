@@ -1,11 +1,11 @@
 from collections import namedtuple
 from functools import partial
-from fruit_dist.artifactory import artifactory_rest, repo_detail
-from fruit_dist.build.agent import Agent
-from fruit_dist.build.build_info import BuildInfo
-from fruit_dist.build.build_retention import BuildRetention
-from fruit_dist.build.module import Module
-from fruit_dist.iso_time import ISOTime
+from daf_fruit_dist.artifactory import artifactory_rest, repo_detail
+from daf_fruit_dist.build.agent import Agent
+from daf_fruit_dist.build.build_info import BuildInfo
+from daf_fruit_dist.build.build_retention import BuildRetention
+from daf_fruit_dist.build.module import Module
+from daf_fruit_dist.iso_time import ISOTime
 import json
 import os
 

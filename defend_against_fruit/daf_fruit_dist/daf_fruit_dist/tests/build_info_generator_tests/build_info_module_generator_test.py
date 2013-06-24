@@ -7,14 +7,14 @@ from nose.tools import eq_
 from pip.exceptions import DistributionNotFound
 from requests import HTTPError
 
-from fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
-from fruit_dist.checksums import Checksums
-from fruit_dist.build.artifact import Artifact
-from fruit_dist.build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_GROUP_ID
-from fruit_dist.build.dependency import Dependency
-from fruit_dist.build.id import Id
-from fruit_dist.build.module import Module
-from fruit_dist.build_info_module_generator import BuildInfoModuleGenerator
+from daf_fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
+from daf_fruit_dist.checksums import Checksums
+from daf_fruit_dist.build.artifact import Artifact
+from daf_fruit_dist.build.constants import PYTHON_SDIST, PYTHON_BDIST, PYTHON_EGG, PYTHON_GROUP_ID
+from daf_fruit_dist.build.dependency import Dependency
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build.module import Module
+from daf_fruit_dist.build_info_module_generator import BuildInfoModuleGenerator
 
 
 class BuildInfoModuleGeneratorTestHelper(object):

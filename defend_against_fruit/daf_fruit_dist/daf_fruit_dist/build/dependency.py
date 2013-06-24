@@ -1,5 +1,5 @@
-from fruit_dist.build.id import Id
-from fruit_dist.build.build_util import nested_object_from_json_data
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build.build_util import nested_object_from_json_data
 
 
 class Dependency(object):

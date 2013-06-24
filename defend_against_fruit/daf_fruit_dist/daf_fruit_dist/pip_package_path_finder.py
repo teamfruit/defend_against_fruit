@@ -3,8 +3,8 @@ from pip.baseparser import ConfigOptionParser
 from pip.exceptions import DistributionNotFound
 from pip.index import PackageFinder
 from pip.req import InstallRequirement
-from fruit_dist.build.constants import PYTHON_GROUP_ID
-from fruit_dist.url_utils import subtract_index_url
+from daf_fruit_dist.build.constants import PYTHON_GROUP_ID
+from daf_fruit_dist.url_utils import subtract_index_url
 
 
 class PipPackagePathFinder(object):

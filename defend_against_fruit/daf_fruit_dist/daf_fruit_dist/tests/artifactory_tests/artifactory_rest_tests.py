@@ -2,9 +2,9 @@ from nose.tools import eq_, raises
 from nose.plugins.attrib import attr
 from requests import HTTPError
 
-from fruit_dist.artifactory.artifactory_rest import determine_checksums
-from fruit_dist.artifactory.repo_detail import read_options
-from fruit_dist.build.constants import PYTHON_GROUP_ID
+from daf_fruit_dist.artifactory.artifactory_rest import determine_checksums
+from daf_fruit_dist.artifactory.repo_detail import read_options
+from daf_fruit_dist.build.constants import PYTHON_GROUP_ID
 
 
 nose_file_path = "{}/nose/nose-1.2.1.tar.gz".format(PYTHON_GROUP_ID)

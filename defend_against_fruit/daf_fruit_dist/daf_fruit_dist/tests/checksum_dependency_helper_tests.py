@@ -2,7 +2,7 @@ from collections import namedtuple
 from nose.tools import eq_, raises
 from pip.exceptions import DistributionNotFound
 from requests import RequestException
-from fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
+from daf_fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
 
 
 def found_files_and_checksums_test():

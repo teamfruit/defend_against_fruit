@@ -1,11 +1,11 @@
 import hashlib
 import os
-from fruit_dist.build.artifact import Artifact
-from fruit_dist.build.dependency import Dependency
-from fruit_dist.build.id import Id
-from fruit_dist.build.build_util import nested_object_from_json_data, \
+from daf_fruit_dist.build.artifact import Artifact
+from daf_fruit_dist.build.dependency import Dependency
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build.build_util import nested_object_from_json_data, \
     get_attr_as_tuple_unless_none, get_attr_as_list_unless_none
-from fruit_dist.file_management import get_file_digests
+from daf_fruit_dist.file_management import get_file_digests
 
 
 class Module(object):

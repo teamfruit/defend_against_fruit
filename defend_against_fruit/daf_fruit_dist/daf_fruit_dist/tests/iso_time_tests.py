@@ -1,6 +1,6 @@
 from datetime import datetime
 from nose.tools import eq_
-from fruit_dist.iso_time import ISOTime
+from daf_fruit_dist.iso_time import ISOTime
 from mock import Mock
 
 

@@ -1,6 +1,6 @@
 from nose.tools import eq_
-from fruit_dist.build.promotion_request import PromotionRequest
-from fruit_dist.tests.build_tests import module_test_helper
+from daf_fruit_dist.build.promotion_request import PromotionRequest
+from daf_fruit_dist.tests.build_tests import module_test_helper
 
 
 def _create_promotion_request(comment="Tested on all target platforms."):

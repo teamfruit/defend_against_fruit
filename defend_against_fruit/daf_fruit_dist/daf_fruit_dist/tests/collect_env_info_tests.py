@@ -1,6 +1,6 @@
 import os
 from nose.tools import raises, eq_
-from fruit_dist.build_info_utils import collect_env_info, EnvInfo
+from daf_fruit_dist.build_info_utils import collect_env_info, EnvInfo
 
 
 ########################################################################################################################

@@ -1,14 +1,14 @@
 from distutils import log
 from setuptools import Command
 
-from fruit_dist.artifactory import artifactory_rest
-from fruit_dist.artifactory.repo_detail import read_options
-from fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
-from fruit_dist.pip_package_path_finder import PipPackagePathFinder
-from fruit_dist.build.constants import PYTHON_GROUP_ID
-from fruit_dist.build.id import Id
-from fruit_dist.build_info_module_generator import BuildInfoModuleGenerator
-from fruit_dist.file_management import compute_requirements_filename_full_path, compute_module_info_filename_full_path
+from daf_fruit_dist.artifactory import artifactory_rest
+from daf_fruit_dist.artifactory.repo_detail import read_options
+from daf_fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
+from daf_fruit_dist.pip_package_path_finder import PipPackagePathFinder
+from daf_fruit_dist.build.constants import PYTHON_GROUP_ID
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build_info_module_generator import BuildInfoModuleGenerator
+from daf_fruit_dist.file_management import compute_requirements_filename_full_path, compute_module_info_filename_full_path
 
 
 class ModuleGeneratorCommand(Command):

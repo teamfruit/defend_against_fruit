@@ -4,7 +4,7 @@ import sys
 
 def integrate():
     # From the newly-included 'daf_fruit_dist' module, import the standard CI run for a raw Python script.
-    from fruit_dist.ci_single_module_utils import standard_py_run
+    from daf_fruit_dist.ci_single_module_utils import standard_py_run
 
     # Execute the CI run against the bootstrap script.
     standard_py_run('virtualenv_util_bootstrap.py')

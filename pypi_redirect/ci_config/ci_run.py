@@ -1,8 +1,8 @@
 import logging
 import os
 import subprocess
-from fruit_dist.ci_utils import standard_sdist_run
-from fruit_dist.exec_utils import install_dev
+from daf_fruit_dist.ci_utils import standard_sdist_run
+from daf_fruit_dist.exec_utils import install_dev
 
 
 def _path_from_here(*path):

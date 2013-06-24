@@ -1,12 +1,12 @@
 from nose.tools import eq_
 
-from fruit_dist.build.agent import Agent
-from fruit_dist.build.build_info import BuildInfo
-from fruit_dist.build.build_retention import BuildRetention
-from fruit_dist.build.constants import PYTHON_SDIST
-from fruit_dist.build.id import Id
-from fruit_dist.build.module import Module
-from fruit_dist.tests.build_tests import module_test_helper
+from daf_fruit_dist.build.agent import Agent
+from daf_fruit_dist.build.build_info import BuildInfo
+from daf_fruit_dist.build.build_retention import BuildRetention
+from daf_fruit_dist.build.constants import PYTHON_SDIST
+from daf_fruit_dist.build.id import Id
+from daf_fruit_dist.build.module import Module
+from daf_fruit_dist.tests.build_tests import module_test_helper
 
 
 def _create_build_info_builder():

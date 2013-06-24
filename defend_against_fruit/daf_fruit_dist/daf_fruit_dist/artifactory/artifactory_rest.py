@@ -7,8 +7,8 @@ import hashlib
 import mimetypes
 import pprint
 import requests
-from fruit_dist.checksums import Checksums
-from fruit_dist.file_management import get_file_digests
+from daf_fruit_dist.checksums import Checksums
+from daf_fruit_dist.file_management import get_file_digests
 
 
 _HEADER_USER_AGENT = 'User-Agent'
