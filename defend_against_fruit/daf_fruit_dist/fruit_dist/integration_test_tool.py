@@ -150,15 +150,15 @@ def _build_info(args):
             delete_build_artifacts=False,
             build_numbers_not_to_be_discarded=[111, 999])  # Is this for TeamCity "pinned" builds?
     )
-    module_builder = Module.Builder(id=Id(group_id="python", artifact_id="fruit_dist", version="1.2.15"))
+    module_builder = Module.Builder(id=Id(group_id="python", artifact_id="daf_fruit_dist", version="1.2.15"))
     module_builder.add_artifact(
         type=PYTHON_SDIST,
-        name="fruit_dist-1.2.15.tar.gz",
+        name="daf_fruit_dist-1.2.15.tar.gz",
         sha1="0a66f5619bcce7a441740e154cd97bad04189d86",
         md5="2a17acbb714e7b696c58b4ca6e07c611")
     module_builder.add_artifact(
         type=PYTHON_FREEZE,
-        name="fruit_dist-1.2.15-requirements.txt",
+        name="daf_fruit_dist-1.2.15-requirements.txt",
         sha1="06e5f0080b6b15704be9d78e801813d802a90625",
         md5="254c0e43bbf5979f8b34ff0428ed6931"
     )

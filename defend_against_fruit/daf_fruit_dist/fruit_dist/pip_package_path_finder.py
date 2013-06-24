@@ -23,7 +23,7 @@ class PipPackagePathFinder(object):
 
     @staticmethod
     def _get_pip_index_url():
-        pip_config_parser = ConfigOptionParser(name='fruit_dist')
+        pip_config_parser = ConfigOptionParser(name='daf_fruit_dist')
         try:
             return dict(pip_config_parser.get_config_section('global'))['index-url']
         except KeyError:

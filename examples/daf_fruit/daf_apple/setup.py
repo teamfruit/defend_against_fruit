@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     #name attribute is now being used by setuptools_webdav
-    name='apple',
+    name='daf_apple',
     version=open('version.txt').read().strip(),
     url='http://teamfruit.github.io/defend_against_fruit/',
     author='Team Fruit',
@@ -20,6 +20,6 @@ setup(
     long_description=open('README.txt').read(),
     test_suite='nose.collector',
     keywords="pypi artifactory continuous integration deployment ci cd",
-    install_requires=['pest>=1.1.47'],
+    install_requires=['daf_pest>=1.1.47'],
     setup_requires=['nose>=1.2.1'],
 )

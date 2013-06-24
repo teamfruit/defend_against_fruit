@@ -8,18 +8,17 @@ except ImportError:
 
 setup(
     #name attribute is now being used by setuptools_webdav
-    name='citrus',
-    version=open('version.txt').read().strip(),
+    name='daf_fruit_orchard',
+    version=open('version.txt').read(),
     url='http://teamfruit.github.io/defend_against_fruit/',
     author='Team Fruit',
     author_email='defend.against.fruit@gmail.com',
-    packages=find_packages(exclude=["*.tests", "*.tests.*"]),
-    license="Apache License 2.0",
-    description='Multi-module continuous deployment example using '
-                'Defend Against Fruit',
-    long_description=open('README.txt').read(),
+    packages=find_packages(exclude=['*.tests', '*.tests.*']),
+    license='Apache License 2.0',
+    description='virtualenv bootstrap utility for Defend Against Fruit',
+    long_description=open(name='README.txt').read(),
     test_suite='nose.collector',
-    keywords="pypi artifactory continuous integration deployment ci cd",
-    install_requires=['pest>=1.1.47'],
+    keywords="pypi artifactory bootstrap continuous integration deployment "
+             "ci cd",
     setup_requires=['nose>=1.2.1'],
 )

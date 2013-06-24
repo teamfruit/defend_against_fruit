@@ -161,15 +161,15 @@ def run(command_line_args):
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path=os.path.join('python_garden', 'basket', 'ci_config'),
+        relative_ci_config_dir_path=os.path.join('examples', 'daf_basket', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path=os.path.join('python_garden', 'fruit', 'ci_config'),
+        relative_ci_config_dir_path=os.path.join('examples', 'daf_fruit', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path=os.path.join('python_garden', 'pest', 'ci_config'),
+        relative_ci_config_dir_path=os.path.join('examples', 'daf_pest', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(

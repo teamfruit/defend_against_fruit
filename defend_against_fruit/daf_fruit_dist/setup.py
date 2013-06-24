@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     #name attribute is now being used by setuptools_webdav
-    name='fruit_dist',
+    name='daf_fruit_dist',
     version=open('version.txt').read().strip(),
     url='http://teamfruit.github.io/defend_against_fruit/',
     author='Team Fruit',
@@ -22,10 +22,10 @@ setup(
     keywords="pypi artifactory continuous integration deployment ci cd",
     entry_points={
         "distutils.commands": [
-            "artifactory_upload = fruit_dist.commands.artifactory_upload:"
+            "artifactory_upload = daf_fruit_dist.commands.artifactory_upload:"
             "artifactory_upload",
-            "freeze = fruit_dist.commands.freeze:freeze",
-            "module_generator = fruit_dist.commands.module_generator_command:"
+            "freeze = daf_fruit_dist.commands.freeze:freeze",
+            "module_generator = daf_fruit_dist.commands.module_generator_command:"
             "ModuleGeneratorCommand",
             ]},
     setup_requires=['nose>=1.2.1'],
