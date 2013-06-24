@@ -1,4 +1,4 @@
-from apple.granny_smith import GrannySmith
+from daf_apple.granny_smith import GrannySmith
 
 
 def fall_test():

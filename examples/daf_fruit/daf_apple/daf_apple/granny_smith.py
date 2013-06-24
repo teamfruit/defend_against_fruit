@@ -1,4 +1,4 @@
-from pest.worm import Worm
+from daf_pest.worm import Worm
 
 
 class GrannySmith(object):

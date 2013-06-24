@@ -1,4 +1,4 @@
-from citrus.pomelo import Pomelo
+from daf_citrus.pomelo import Pomelo
 
 
 def fall_test():

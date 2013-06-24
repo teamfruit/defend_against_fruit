@@ -1,4 +1,4 @@
-from apple.gala import Gala
+from daf_apple.gala import Gala
 
 
 def fall_test():

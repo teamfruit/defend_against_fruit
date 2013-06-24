@@ -1,5 +1,5 @@
-from apple.gala import Gala
-from citrus.pomelo import Pomelo
+from daf_apple.gala import Gala
+from daf_citrus.pomelo import Pomelo
 
 
 class WickerBasket(object):

@@ -1,4 +1,4 @@
-from citrus.grapefruit import Grapefruit
+from daf_citrus.grapefruit import Grapefruit
 
 
 def fall_test():

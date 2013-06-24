@@ -1,4 +1,4 @@
-from basket.wicker_basket import WickerBasket
+from daf_basket.wicker_basket import WickerBasket
 
 
 def feed_snow_white_test():

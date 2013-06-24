@@ -1,7 +1,7 @@
-from pest.worm import Worm
+from daf_pest.worm import Worm
 
 
-class Pomelo(object):
+class Grapefruit(object):
     def __init__(self):
         pass
 
@@ -10,8 +10,8 @@ class Pomelo(object):
         is_good_day = my_worm.crawl()
 
         if is_good_day:
-            print "Messy juicy goodness in a vacuum falls the same as an apple in a vacuum"
+            print "Grapefruits fall like any other fruit."
         else:
-            print "Worms in a Pomelo are nasty"
+            print "Wormy grapefruits are yucky!"
 
         return is_good_day
