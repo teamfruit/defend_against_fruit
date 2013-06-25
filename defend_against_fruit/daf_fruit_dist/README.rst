@@ -1,4 +1,4 @@
-The **fruit_dist** package provides various utilities for setup utils and continuous integration.
+The **daf_fruit_dist** package provides various utilities for setup utils and continuous integration.
 
 This includes a few setup commands for interacting with an Artifactory server.
 
@@ -16,10 +16,10 @@ the setup commands here.
 Setuptools Command QuickStart
 ==================
 
-In order to use this plugin you need to add **fruit_dist** to the **setup_requires** command in your setup.py.
+In order to use this plugin you need to add **daf_fruit_dist** to the **setup_requires** command in your setup.py.
 This will instruct setuptools to download and use this plugin.
 
-The **fruit_dist** plugin provides the **artifactory_upload** command.
+The **daf_fruit_dist** plugin provides the **artifactory_upload** command.
 
 The Artifactory server that will be used for the upload, and the corresponding credentials, can be configured in your
 **.pypirc** in the.
@@ -34,7 +34,7 @@ Example setup.py
 	name="DummyProject",
 	version="3.1.4",
 	packages=find_packages(),
-	setup_requires=["fruit_dist"],
+	setup_requires=["daf_fruit_dist"],
 	)
 
 Example .pypirc
