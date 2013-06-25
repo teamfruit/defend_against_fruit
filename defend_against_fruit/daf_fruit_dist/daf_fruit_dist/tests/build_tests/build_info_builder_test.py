@@ -60,7 +60,8 @@ def _assert_basic_attributes(build_info):
     eq_(build_info.build_agent.version, "1.3")
     eq_(build_info.build_retention.count, 5)
     eq_(build_info.build_retention.delete_build_artifacts, False)
-    eq_(build_info.build_retention.build_numbers_not_to_be_discarded, [111, 999])
+    eq_(build_info.build_retention.build_numbers_not_to_be_discarded,
+        [111, 999])
 
 
 def _create_module():
@@ -82,11 +83,14 @@ def typical_usage_test():
 
 
 def equals_and_hash_expected_equality_test():
-    """Test equals and hashcode behavior of BuildInfo and the containing classes.
+    """
+    Test equals and hashcode behavior of BuildInfo and the containing
+    classes.
 
-    If I have messed up I'm pretty sure it will show up as a false negative not a false positive.
-    The most likely problem is that I have tried to hash some structure that will through an
-    unhashable type error.
+    If I have messed up I'm pretty sure it will show up as a false
+    negative not a false positive. The most likely problem is that I
+    have tried to hash some structure that will throw an unhashable
+    type error.
     """
     build_info_A = _create_build_info()
     build_info_B = _create_build_info()
@@ -96,8 +100,10 @@ def equals_and_hash_expected_equality_test():
 
 
 def equals_and_hash_expected_difference_test():
-    """quick check to make sure I am not causing problems by feeding a dict to frozenset."""
-
+    """
+    quick check to make sure I am not causing problems by feeding a dict
+    to frozenset.
+    """
     bi_builder_C = _create_build_info_builder()
     module_builder_C = Module.Builder(
         id=Id(
@@ -118,9 +124,11 @@ def equals_and_hash_expected_difference_test():
     bi_builder_D.add_module(module_builder_D.build())
     build_info_D = bi_builder_D.build()
 
-    assert build_info_C != build_info_D,\
-        "different property values should result in unequal BuildInfo instances"
-    assert build_info_C.__hash__() != build_info_D.__hash__(),\
+    assert build_info_C != build_info_D, \
+        "different property values should result in unequal BuildInfo " \
+        "instances"
+
+    assert build_info_C.__hash__() != build_info_D.__hash__(), \
         "different property values should result in unequal hash values"
 
 
@@ -219,4 +227,6 @@ def missing_basic_attributes_test():
     bi_builder.add_module(_create_module())
     build_info = bi_builder.build()
 
-    module_test_helper.round_trip_to_and_from_wire_format(build_info, from_json_data_func=BuildInfo.from_json_data)
+    module_test_helper.round_trip_to_and_from_wire_format(
+        build_info,
+        from_json_data_func=BuildInfo.from_json_data)

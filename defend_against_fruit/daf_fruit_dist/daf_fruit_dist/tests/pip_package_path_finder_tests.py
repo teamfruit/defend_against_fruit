@@ -4,7 +4,9 @@ from nose.tools import raises, eq_
 from pip.exceptions import DistributionNotFound
 import pkg_resources
 from daf_fruit_dist.build.constants import PYTHON_GROUP_ID
-from daf_fruit_dist.pip_package_path_finder import PipPackagePathFinder, _requirement_finder
+from daf_fruit_dist.pip_package_path_finder import \
+    PipPackagePathFinder, \
+    _requirement_finder
 
 
 @attr("integration")
@@ -15,14 +17,18 @@ def test_available_package_and_version():
 
     ############
     #Execute unit under test
-    observed_file_path = finder.determine_file_path(pkg_name="nose", pkg_version="1.2.1")
+    observed_file_path = finder.determine_file_path(
+        pkg_name="nose",
+        pkg_version="1.2.1")
 
     ###########
     #Assert results
     match_regex = r"{}/nose/nose.*1\.2\.1.*".format(PYTHON_GROUP_ID)
     path_as_expected = re.match(match_regex, observed_file_path)
-    assert path_as_expected, "match_regex: {} should match observed_file_path: {}".format(
-        match_regex, observed_file_path)
+
+    assert path_as_expected, \
+        "match_regex: {} should match observed_file_path: {}".format(
+            match_regex, observed_file_path)
 
 
 @attr("integration")
@@ -36,12 +42,15 @@ def test_unavailable_version():
 @raises(DistributionNotFound)
 def test_unavailable_package():
     finder = PipPackagePathFinder()
-    finder.determine_file_path(pkg_name="non-existent-pkg-1234", pkg_version="1.2.1")
+    finder.determine_file_path(
+        pkg_name="non-existent-pkg-1234",
+        pkg_version="1.2.1")
 
 
 class FinderStub(object):
     def __init__(self, expected_reqs_and_rv_pairs):
-        self.expected = FinderStub._parse_expected_reqs(expected_reqs_and_rv_pairs)
+        self.expected = FinderStub._parse_expected_reqs(
+            expected_reqs_and_rv_pairs)
         self.times_called = 0
 
     @staticmethod
@@ -49,7 +58,8 @@ class FinderStub(object):
         expected_list = []
 
         for desired_req_str, return_value in expected_reqs_and_rv_pairs:
-            expected_list.append((pkg_resources.Requirement.parse(desired_req_str), return_value))
+            expected_list.append((pkg_resources.Requirement.parse(
+                desired_req_str), return_value))
 
         return tuple(expected_list)
 
@@ -84,7 +94,9 @@ def test_first_try_matches():
         (real_package_string, dummy_link),
     ))
 
-    actual_result = _requirement_finder(finder=finder, req_str=real_package_string)
+    actual_result = _requirement_finder(
+        finder=finder,
+        req_str=real_package_string)
 
     eq_(actual_result, dummy_link)
 
@@ -98,7 +110,9 @@ def test_second_try_matches():
         ('some-package-name==1.2.0', dummy_link),
     ))
 
-    actual_result = _requirement_finder(finder=finder, req_str=real_package_string)
+    actual_result = _requirement_finder(
+        finder=finder,
+        req_str=real_package_string)
 
     eq_(actual_result, dummy_link)
 
@@ -113,6 +127,8 @@ def test_third_try_matches():
         ('some_package_name==1.2.0', dummy_link),
     ))
 
-    actual_result = _requirement_finder(finder=finder, req_str=real_package_string)
+    actual_result = _requirement_finder(
+        finder=finder,
+        req_str=real_package_string)
 
     eq_(actual_result, dummy_link)

@@ -2,10 +2,22 @@ from collections import namedtuple
 from distutils.errors import DistutilsOptionError
 from distutils.dist import Distribution
 
-RepoDetail = namedtuple('RepoDetail', ['repo_base_url', 'repo_push_id', 'repo_pull_id', 'username', 'password'])
+RepoDetail = namedtuple(
+    'RepoDetail', [
+        'repo_base_url',
+        'repo_push_id',
+        'repo_pull_id',
+        'username',
+        'password'])
 
 
-def read_options(repo_base_url=None, repo_push_id=None, repo_pull_id=None, username=None, password=None):
+def read_options(
+        repo_base_url=None,
+        repo_push_id=None,
+        repo_pull_id=None,
+        username=None,
+        password=None):
+
     if repo_base_url and repo_push_id and username and password:
         return RepoDetail(
             repo_base_url=repo_base_url,
@@ -38,8 +50,11 @@ def _read_artifactory_config_section():
     dist.parse_config_files(filenames=file_names)
     artifactory_config_key = "artifactory"
     artifactory_opts = dist.get_option_dict(artifactory_config_key)
+
     if not artifactory_opts:
         raise DistutilsOptionError(
-            'Could not find a {} section in {}'.format(artifactory_config_key, file_names))
+            'Could not find a {} section in {}'.format(
+                artifactory_config_key,
+                file_names))
 
     return artifactory_opts

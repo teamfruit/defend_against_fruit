@@ -14,36 +14,52 @@ def validate_subtract_index_url_failure(index_url, pkg_url):
 
 def test_subtract_index_url_happy_path():
     index_url_pkg_url_pip_tail_tuples = (
-        ('http://artifactory.defendagainstfruit.com:801/artifactory/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com:801/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com:801'
+         '/artifactory/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com:801'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
          'nose/nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com:801/artifactory/team-fruit/python/',
-         'http://artifactory.defendagainstfruit.com:801/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com:801'
+         '/artifactory/team-fruit/python/',
+         'http://artifactory.defendagainstfruit.com:801'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
          'nose/nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
          'nose/nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
          'nose/nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/nose-1.2.1.tar.gz',
          'nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/nose-1.2.1.tar.gz',
          'nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com/team-fruit/python/nose/nose-1.2.1.tar.gz',
+        ('http://artifactory.defendagainstfruit.com'
+         '/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com'
+         '/team-fruit/python/nose/nose-1.2.1.tar.gz',
          'nose/nose-1.2.1.tar.gz'),
 
-        ('https://artifactory.defendagainstfruit.com:801/artifactory/team-fruit/python',
-         'https://artifactory.defendagainstfruit.com:801/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
+        ('https://artifactory.defendagainstfruit.com:801'
+         '/artifactory/team-fruit/python',
+         'https://artifactory.defendagainstfruit.com:801'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz',
          'nose/nose-1.2.1.tar.gz')
     )
     for index_url, pkg_url, expected_tail in index_url_pkg_url_pip_tail_tuples:
@@ -52,20 +68,30 @@ def test_subtract_index_url_happy_path():
 
 def test_subtract_index_url_unhappy_path():
     index_url_pkg_url_tuples = (
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/ugly',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz'),
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/ugly',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python'),
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python'),
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python'),
 
-        ('http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/'),
+        ('http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/'),
 
-        ('artifactory.defendagainstfruit.com/artifactory/team-fruit/python',
-         'http://artifactory.defendagainstfruit.com/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz'),
+        ('artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python',
+         'http://artifactory.defendagainstfruit.com'
+         '/artifactory/team-fruit/python/nose/nose-1.2.1.tar.gz'),
 
         ('ladies and gentlemen',
          'hobos and tramps')

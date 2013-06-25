@@ -8,13 +8,21 @@ from daf_fruit_dist.file_management import compute_repo_path_from_module_name
 
 
 class artifactory_upload(Command):
-    description = 'upload package to an Artifactory server in the simple PyPI layout'
+    description = (
+        'upload package to an Artifactory server in the simple PyPI layout')
+
     user_options = [
-        ('repo-base-url=', None, 'base URL of repository'),
-        ('repo-push-id=', None, 'repository to which build artifacts should be deployed (e.g. pypi-teamfruit-l-local)'),
-        ('repo-user=', None, 'username for the repository (HTTP basic auth)'),
-        ('repo-pass=', None, 'password for the repository (HTTP basic auth)'),
-        ('no-cert-verify', None, 'do not verify authenticity of host cert when using SSL')]
+        ('repo-base-url=', None,
+         'base URL of repository'),
+        ('repo-push-id=', None,
+         'repository to which build artifacts should be deployed (e.g. '
+         'pypi-teamfruit-l-local)'),
+        ('repo-user=', None,
+         'username for the repository (HTTP basic auth)'),
+        ('repo-pass=', None,
+         'password for the repository (HTTP basic auth)'),
+        ('no-cert-verify', None,
+         'do not verify authenticity of host cert when using SSL')]
 
     boolean_options = [
         'no-cert-verify',
@@ -46,7 +54,10 @@ class artifactory_upload(Command):
             password=self.repo_pass)
 
         self.announce(
-            'Repository details: repo_base_url="{}", repo_push_id="{}" username="{}"'.format(
+            'Repository details: '
+            'repo_base_url="{}", '
+            'repo_push_id="{}" '
+            'username="{}"'.format(
                 repo_details.repo_base_url,
                 repo_details.repo_push_id,
                 repo_details.username),
@@ -57,7 +68,8 @@ class artifactory_upload(Command):
 
         verify_cert = not self.no_cert_verify
 
-        path = compute_repo_path_from_module_name(self.distribution.metadata.name)
+        path = compute_repo_path_from_module_name(
+            self.distribution.metadata.name)
 
         self.upload = partial(
             self.__upload,
@@ -70,13 +82,25 @@ class artifactory_upload(Command):
 
     def run(self):
         if not self.distribution.dist_files:
-            raise DistutilsOptionError('No dist file created in earlier command')
+            raise DistutilsOptionError(
+                'No dist file created in earlier command')
 
-        for distribution, python_version, filename in self.distribution.dist_files:
+        for dist, python_version, filename in self.distribution.dist_files:
             self.upload(filename=filename)
 
-    def __upload(self, filename, repo_base_url, repo_push_id, path, username=None, password=None, verify_cert=True):
-        self.announce('Uploading: {}/{}/{}/{}'.format(repo_base_url, repo_push_id, path, filename), level=log.INFO)
+    def __upload(
+            self,
+            filename,
+            repo_base_url,
+            repo_push_id,
+            path,
+            username=None,
+            password=None,
+            verify_cert=True):
+
+        self.announce('Uploading: {}/{}/{}/{}'.format(
+            repo_base_url, repo_push_id, path, filename),
+            level=log.INFO)
 
         return artifactory_rest.deploy_file(
             filename=filename,

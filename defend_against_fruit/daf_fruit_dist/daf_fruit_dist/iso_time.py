@@ -14,4 +14,6 @@ class ISOTime(object):
 
     @property
     def as_str(self):
-        return self.__date.isoformat()[:-3] + '{:+05}'.format(self.__gmt_offset / -36)
+        return (
+            self.__date.isoformat()[:-3] +
+            '{:+05}'.format(self.__gmt_offset / -36))

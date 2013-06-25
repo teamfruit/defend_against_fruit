@@ -1,8 +1,12 @@
 import logging
 import os
-from file_management import DirectoryContextManager, compute_repo_path_from_module_name, get_submodule_info
+from file_management import DirectoryContextManager
+from file_management import compute_repo_path_from_module_name
+from file_management import get_submodule_info
 from exec_utils import run_ci_script
-from daf_fruit_dist.build_info_utils import merge_module_info_files, build_info_to_text, get_deploy_functions
+from daf_fruit_dist.build_info_utils import merge_module_info_files
+from daf_fruit_dist.build_info_utils import build_info_to_text
+from daf_fruit_dist.build_info_utils import get_deploy_functions
 
 
 def execute_submodule_run(submodule_order):
@@ -22,13 +26,19 @@ def _collect_build_info(submodule_order, env_info):
 def deploy_all_modules(module_order, env_info, verify_cert=True):
     build_info = _collect_build_info(module_order, env_info)
 
-    logging.debug(os.linesep.join(('Build info:', build_info_to_text(build_info))))
+    logging.debug(os.linesep.join((
+        'Build info:',
+        build_info_to_text(build_info))))
 
-    deploy_artifact, deploy_build_info = get_deploy_functions(env_info=env_info, verify_cert=verify_cert)
+    deploy_artifact, deploy_build_info = get_deploy_functions(
+        env_info=env_info,
+        verify_cert=verify_cert)
 
     def deploy_dist(module):
         path = compute_repo_path_from_module_name(module)
-        return deploy_artifact(path=path, glob_patterns=[os.path.join(module, 'dist', '*')])
+        return deploy_artifact(
+            path=path,
+            glob_patterns=[os.path.join(module, 'dist', '*')])
 
     deployed_files = []
 

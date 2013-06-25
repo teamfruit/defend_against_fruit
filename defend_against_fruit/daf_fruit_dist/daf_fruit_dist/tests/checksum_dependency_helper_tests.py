@@ -6,7 +6,10 @@ from daf_fruit_dist.checksum_dependency_helper import ChecksumDependencyHelper
 
 
 def found_files_and_checksums_test():
-    """Verify that finding a package and its associated checksums results in those checksums being returned."""
+    """
+    Verify that finding a package and its associated checksums results
+    in those checksums being returned.
+    """
     TestContext(
         determine_file_path_succeeds=True,
         determine_checksums_succeeds=True,
@@ -14,7 +17,10 @@ def found_files_and_checksums_test():
 
 
 def failed_to_find_file_test():
-    """Verify that failing to find a package results in None being returned for each checksum."""
+    """
+    Verify that failing to find a package results in None being returned
+    for each checksum.
+    """
     TestContext(
         determine_file_path_succeeds=False,
         determine_checksums_succeeds=False,
@@ -23,15 +29,18 @@ def failed_to_find_file_test():
 
 @raises(RequestException)
 def found_file_but_not_checksums_test():
-    """Verify that successfully finding a package but not its associated checksums results in an exception."""
+    """
+    Verify that successfully finding a package but not its associated
+    checksums results in an exception.
+    """
     TestContext(
         determine_file_path_succeeds=True,
         determine_checksums_succeeds=False,
         checksum_lookup_exception=RequestException).run()
 
 
-########################################################################################################################
-################################################################################################## Test Data and Helpers
+###############################################################################
+######################################################### Test Data and Helpers
 
 Checksums = namedtuple('Hashes', ('md5', 'sha1'))
 
@@ -58,7 +67,8 @@ class TestContext(object):
             self.__determine_file_path_fn = fn
 
         if determine_checksums_succeeds:
-            self.__determine_checksums_fn = lambda dependency_path: self.__checksums
+            self.__determine_checksums_fn = (
+                lambda dependency_path: self.__checksums)
         else:
             def fn(dependency_path):
                 raise self.__checksum_lookup_exception()
@@ -71,8 +81,11 @@ class TestContext(object):
     def run(self):
         checksum_dependency_helper = ChecksumDependencyHelper(
             determine_file_path_fn=self.__determine_file_path_fn,
-            determine_checksums_from_file_path_fn=self.__determine_checksums_fn)
+            determine_checksums_from_file_path_fn=
+            self.__determine_checksums_fn)
 
-        actual_md5, actual_sha1 = checksum_dependency_helper(artifact_id=None, version=None)
+        actual_md5, actual_sha1 = checksum_dependency_helper(
+            artifact_id=None,
+            version=None)
 
         self.__verify_checksums(actual_md5, actual_sha1)

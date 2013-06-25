@@ -51,7 +51,10 @@ def compute_module_info_filename(artifact_id, module_version):
     return output_filename
 
 
-def compute_module_info_filename_full_path(artifact_id, version, module_info_dir=MODULE_INFO_DIR):
+def compute_module_info_filename_full_path(
+        artifact_id,
+        version,
+        module_info_dir=MODULE_INFO_DIR):
     filename = compute_module_info_filename(artifact_id, version)
     relative_path = os.path.join(module_info_dir, filename)
     return os.path.abspath(relative_path)
@@ -64,7 +67,10 @@ def compute_requirements_filename(artifact_id, module_version):
     return output_filename
 
 
-def compute_requirements_filename_full_path(artifact_id, version, dist_dir='dist'):
+def compute_requirements_filename_full_path(
+        artifact_id,
+        version,
+        dist_dir='dist'):
     filename = compute_requirements_filename(artifact_id, version)
     relative_path = os.path.join(dist_dir, filename)
     return os.path.abspath(relative_path)
@@ -78,27 +84,42 @@ def get_submodule_info(module_dir, module_info_dir=MODULE_INFO_DIR):
     """Find json module info file for the specified module directory.
 
     :param module_dir: directory of module or submodule being searched
-    :param module_info_dir: sub-directory within module directory in which to search
+    :param module_info_dir: sub-directory within module directory in
+        which to search
     """
 
     def _one_json_file(files):
-        """There should not be more than one JSON file per module. If there is, this method raises an error."""
-        assert len(files) <= 1, 'Submodules should have a maximum of one module-info JSON file each.'
+        """
+        There should not be more than one JSON file per module. If there
+        is, this method raises an error.
+        """
+        assert len(files) <= 1, \
+            'Submodules should have a maximum of one module-info JSON ' \
+            'file each.'
+
         return files[0] if files else None
 
     def _glob_submodule_info(module_dir, module_info_dir):
-        json_pattern = os.path.join(module_dir, module_info_dir, '*-module-info.json')
+        json_pattern = os.path.join(
+            module_dir,
+            module_info_dir,
+            '*-module-info.json')
         return glob.glob(json_pattern)
 
-    return _one_json_file(_glob_submodule_info(module_dir=module_dir, module_info_dir=module_info_dir))
+    return _one_json_file(_glob_submodule_info(
+        module_dir=module_dir,
+        module_info_dir=module_info_dir))
 
 
 def get_file_digests(filename, digests, block_size=2 ** 20):
     """
-    Calculate hashes of the given file. 'digests' should be an iterable container of hashlib-compatible objects.
+    Calculate hashes of the given file. 'digests' should be an iterable
+    container of hashlib-compatible objects.
 
     Example usage:
-    > md5, sha1 = get_file_digests('archive.tar.gz', digests=(hashlib.md5(), hashlib.sha1()))
+    > md5, sha1 = get_file_digests(
+        'archive.tar.gz',
+        digests=(hashlib.md5(), hashlib.sha1()))
     > md5.hexdigest()
     'b488a911018964989d158a34c47709d4'
     > sha1.hexdigest()
@@ -115,7 +136,10 @@ def get_file_digests(filename, digests, block_size=2 ** 20):
 
 
 def write_to_file(file_path, to_write, write_mode='w'):
-    """Write the given data into the file at the given path. If the path does not exist, it is created."""
+    """
+    Write the given data into the file at the given path. If the path
+    does not exist, it is created.
+    """
     dirname = os.path.dirname(os.path.abspath(file_path))
 
     if dirname:

@@ -8,25 +8,40 @@ from daf_fruit_dist.pip_package_path_finder import PipPackagePathFinder
 from daf_fruit_dist.build.constants import PYTHON_GROUP_ID
 from daf_fruit_dist.build.id import Id
 from daf_fruit_dist.build_info_module_generator import BuildInfoModuleGenerator
-from daf_fruit_dist.file_management import compute_requirements_filename_full_path, compute_module_info_filename_full_path
+from daf_fruit_dist.file_management import \
+    compute_requirements_filename_full_path, \
+    compute_module_info_filename_full_path
 
 
 class ModuleGeneratorCommand(Command):
-    """Command for generating Artifactory module meta-data files for use in ``setup.py`` scripts."""
+    """
+    Command for generating Artifactory module meta-data files for use in
+    ``setup.py`` scripts.
+    """
 
     # Description shown in setup.py --help-commands
-    description = 'Build model portion of Artifactory build-info and save as json file in dist directory'
+    description = (
+        'Build model portion of Artifactory build-info and save as json file '
+        'in dist directory')
 
-    # Options available for this command, tuples of ('longoption', 'shortoption', 'help')
-    # If the longoption name ends in a `=` it takes an argument
+    # Options available for this command, tuples of ('longoption',
+    # 'shortoption', 'help'). If the longoption name ends in a `=` it
+    # takes an argument.
     user_options = [
-        ('force-dependency-rebuild', None, 'rebuild dependency meta-data information'),
-        ('force-clean', None, 'rebuild all meta-data information'),
-        ('no-cert-verify', None, 'do not verify authenticity of host cert when using SSL')]
+        ('force-dependency-rebuild', None,
+         'rebuild dependency meta-data information'),
+        ('force-clean', None,
+         'rebuild all meta-data information'),
+        ('no-cert-verify', None,
+         'do not verify authenticity of host cert when using SSL')]
 
     # Options that don't take arguments, simple true or false options.
-    # These *must* be included in user_options too, but without a = equals sign
-    boolean_options = ['force-dependency-rebuild', 'force-clean', 'no-cert-verify']
+    # These *must* be included in user_options too, but without an
+    # equals sign.
+    boolean_options = [
+        'force-dependency-rebuild',
+        'force-clean',
+        'no-cert-verify']
 
     def initialize_options(self):
         # Set a default for each of your user_options (long option name)
@@ -51,13 +66,15 @@ class ModuleGeneratorCommand(Command):
             level=log.INFO
         )
 
-        #This command is never used interactively, so it doesn't make sense to add support for passing
-        #in repo details like the artifactory_upload command does.
-        #If that changes in the future this command can always be enhanced at that time.
-        #The work involved to add the options isn't so much in the code changes to this command
-        #as in the test coverage that would need to be written. It would also probably require
-        #refactoring the commands to share a common base class.
-        # All this currently falls under YAGNI (You're Not Going To Need It).
+        # This command is never used interactively, so it doesn't make
+        # sense to add support for passing in repo details like the
+        # artifactory_upload command does. If that changes in the future
+        # this command can always be enhanced at that time. The work
+        # involved to add the options isn't so much in the code changes
+        # to this command as in the test coverage that would need to be
+        # written. It would also probably require refactoring the
+        # commands to share a common base class. All this currently
+        # falls under YAGNI (You're Not Going To Need It).
 
         verify_cert = not self.no_cert_verify
         repo_details = read_options()
@@ -97,4 +114,6 @@ class ModuleGeneratorCommand(Command):
             force_dependency_rebuild=bool(self.force_dependency_rebuild),
             force_clean=bool(self.force_clean))
 
-        self.announce('Module info file created at: {}'.format(module_info_file), level=log.INFO)
+        self.announce(
+            'Module info file created at: {}'.format(module_info_file),
+            level=log.INFO)

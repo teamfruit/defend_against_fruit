@@ -28,7 +28,9 @@ def equals_test():
     promotion_requestC = _create_promotion_request(comment="lets be different")
 
     eq_(promotion_request, promotion_requestB)
-    assert promotion_requestC != promotion_request, "%r == %r" % (promotion_requestC, promotion_request)
+
+    assert promotion_requestC != promotion_request, \
+        "%r == %r" % (promotion_requestC, promotion_request)
 
 
 def json_encoding_decoding_test():
