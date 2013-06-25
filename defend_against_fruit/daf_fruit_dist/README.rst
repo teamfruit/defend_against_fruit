@@ -4,7 +4,7 @@ This includes a few setup commands for interacting with an Artifactory server.
 
 Overview
 ========
-The fruit_dist module is part of a larger subsystem responsible for making continuous deployment
+The daf_fruit_dist module is part of a larger subsystem responsible for making continuous deployment
 style usage of Artifactory possible. Most of the details are not yet documented outside of the
 working examples.
 
