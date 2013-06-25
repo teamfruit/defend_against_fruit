@@ -11,9 +11,9 @@ class WickerBasket(object):
         is_good_day = my_fruit.fall()
 
         if is_good_day:
-            print "Hi Ho Hi Ho its off to work we go."
+            print("Hi Ho Hi Ho its off to work we go.")
         else:
-            print "That wicked witch put worms in our Pomelos."
+            print("That wicked witch put worms in our Pomelos.")
 
         return is_good_day
 
@@ -22,8 +22,8 @@ class WickerBasket(object):
         is_good_day = my_apple.fall()
 
         if is_good_day:
-            print "Prince charming is here. Even grumpy is happy!"
+            print("Prince charming is here. Even grumpy is happy!")
         else:
-            print "I'm falling asleep. Darn that wicked witch!"
+            print("I'm falling asleep. Darn that wicked witch!")
 
         return is_good_day
