@@ -75,8 +75,8 @@ class BuildInfoModuleGenerator(object):
             'bdist_dumb': PYTHON_BDIST,
             'bdist_egg': PYTHON_EGG,
             'bdist_wheel': PYTHON_WHEEL,
-            'bdist_rpm': PYTHON_RPM,            
-            'build_sphinx': PYTHON_SPHINX,            
+            'bdist_rpm': PYTHON_RPM,
+            'build_sphinx': PYTHON_SPHINX,
             'build_sphinx_zip': PYTHON_SPHINX,
             'freeze': PYTHON_FREEZE
         }

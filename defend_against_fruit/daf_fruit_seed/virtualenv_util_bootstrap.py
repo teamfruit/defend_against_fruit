@@ -87,7 +87,7 @@ else:
 
 
 # See if the virtualenv_util of the correct version has already been
-# downloaded and unpacked.  If not, look at the config file to get 
+# downloaded and unpacked.  If not, look at the config file to get
 # the location where we should be getting the virtualenv_util package
 # from.
 if virtualenv_util_path is None:
@@ -96,7 +96,7 @@ if virtualenv_util_path is None:
         VIRTUALENV_UTIL_PACKAGE_NAME, pypi_server))
 
     # Was a fixed virtualenv_util version specified?  If not, we need to check
-    # the PyPI server for the latest version.    
+    # the PyPI server for the latest version.
     if virtualenv_util_version is None:
         virtualenv_util_url_dir = (
             pypi_server + '/' + VIRTUALENV_UTIL_PACKAGE_NAME)
@@ -106,8 +106,8 @@ if virtualenv_util_path is None:
         index = f_remote.read()
 
         # Very simple regex parser that finds all hyperlinks in the index
-        # HTML... this may break in some cases, but we want to keep it super 
-        # simple in the bootstrap.               
+        # HTML... this may break in some cases, but we want to keep it super
+        # simple in the bootstrap.
         hyperlinks = re.findall('href="(.*?)"', str(index.lower()))
 
         # Get all hyperlinks that start with the virtualenv package name
@@ -126,10 +126,10 @@ if virtualenv_util_path is None:
 
         # Sort the versions from lowest to highest.
         # NOTE: This simple sort will work for most versions we expect to
-        # use in the virtualenv_util package.  This could be enhanced.  
+        # use in the virtualenv_util package.  This could be enhanced.
         versions.sort()
 
-        # Select the highest version.        
+        # Select the highest version.
         virtualenv_util_version = versions[-1]
 
     print('Downloading {} package version {}...'.format(

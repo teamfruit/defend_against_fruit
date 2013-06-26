@@ -123,7 +123,7 @@ def create_virtualenv(
         virtualenv_package_name='virtualenv'):
     print('Creating new virtual environment at {}...'.format(virtualenv_path))
 
-    # Remove any old virtualenv that may be sitting in the target virtualenv 
+    # Remove any old virtualenv that may be sitting in the target virtualenv
     # directory.
     if os.path.isdir(virtualenv_path):
         shutil.rmtree(virtualenv_path, ignore_errors=False, onerror=handle_remove_readonly)
@@ -133,7 +133,7 @@ def create_virtualenv(
 
     try:
         # Was a fixed virtualenv_util version specified?  If not, we need to check
-        # the PyPI server for the latest version.    
+        # the PyPI server for the latest version.
         if virtualenv_version is None:
             virtualenv_url_dir = pypi_server + '/' + virtualenv_package_name
 
@@ -141,8 +141,8 @@ def create_virtualenv(
             index = f_remote.read()
 
             # Very simple regex parser that finds all hyperlinks in the index
-            # HTML... this may break in some cases, but we want to keep it super 
-            # simple in the bootstrap.               
+            # HTML... this may break in some cases, but we want to keep it super
+            # simple in the bootstrap.
             hyperlinks = re.findall('href="(.*?)"', str(index.lower()))
 
             # Get all hyperlinks that start with the virtualenv package name
@@ -158,7 +158,7 @@ def create_virtualenv(
                     # encounter.  This could be enhanced.
             versions.sort()
 
-            # Select the highest version.        
+            # Select the highest version.
             virtualenv_version = versions[-1]
 
             # Attempt to locate and download a virtualenv package of the version
@@ -177,8 +177,8 @@ def create_virtualenv(
         tarf.close()
         unpacked_tar_directory = os.path.join(temp_dir, virtualenv_tar_filename.replace('.tar.gz', ''))
 
-        # Create the bootstrap virtualenv in the temporary directory using the 
-        # current python executable we are using plus the virtualenv stuff we 
+        # Create the bootstrap virtualenv in the temporary directory using the
+        # current python executable we are using plus the virtualenv stuff we
         # unpacked.
         bootstrap_vm_directory = os.path.join(temp_dir, 'virtualenv-bootstrap')
         os.system(
@@ -194,8 +194,8 @@ def create_virtualenv(
             pypi_server))
 
         # Use the bootstrap virtualenv to create the "real" virtualenv in the
-        # view at the right location. 
-        # We have to be careful to get the python version correct this time.    
+        # view at the right location.
+        # We have to be careful to get the python version correct this time.
         os.system('"{}" --distribute {}'.format(
             os.path.join(bootstrap_vm_directory, 'Scripts', 'virtualenv'),
             virtualenv_path))
@@ -336,14 +336,14 @@ def main(config_file_path=None):
         options.clean = True
         options.run = options.run.replace('--veclean', '')
 
-    # If we are running from INSIDE a virtualenv already, assume that the 
+    # If we are running from INSIDE a virtualenv already, assume that the
     # virtualenv already exists and we only need to update it.
     if hasattr(sys, 'real_prefix'):
         # Check that the version of Python in the virtualenv being used is
         # correct.  We cannot update this, so error if it is incorrect.
         pass
     else:
-        # Does the virtualenv already exist?  If so, we just check to make 
+        # Does the virtualenv already exist?  If so, we just check to make
         # sure it is up to date.
         if os.path.isfile(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe')) and not options.clean:
         # Check the version of Python in the virtualenv.  We cannot
@@ -382,7 +382,7 @@ def main(config_file_path=None):
 
             f.close()
 
-            # Output the list of installed tools to a text file. 
+            # Output the list of installed tools to a text file.
             os.system(
                 '{} freeze >> {}'.format(os.path.join(options.virtualenv_path, 'Scripts', 'pip'),
                                          options.installed_list_file))
@@ -392,9 +392,9 @@ def main(config_file_path=None):
         p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', 'python.exe') + ' ' + options.run)
         sys.exit(p.wait())
     elif options.script is not None:
-        # Run a script, assumed to be located in the Scripts directory.                   
+        # Run a script, assumed to be located in the Scripts directory.
         # of the virtualenv.  Note that the script name cannot have any spaces
-        # using the logic below.             
+        # using the logic below.
         p = subprocess.Popen(os.path.join(options.virtualenv_path, 'Scripts', options.script.split()[0]))
         sys.exit(p.wait())
 
