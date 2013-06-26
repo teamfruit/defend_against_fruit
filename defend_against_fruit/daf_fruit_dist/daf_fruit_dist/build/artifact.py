@@ -48,7 +48,9 @@ class Artifact(object):
         return hash(self.__attrs())
 
     def __eq__(self, other):
-        return isinstance(other, Artifact) and self.__attrs() == other.__attrs()
+        return (
+            isinstance(other, Artifact) and
+            self.__attrs() == other.__attrs())
 
     def __ne__(self, other):
         return not self == other

@@ -8,7 +8,10 @@ from daf_fruit_dist.url_utils import subtract_index_url
 
 
 class PipPackagePathFinder(object):
-    """Performs the PIP related aspects of determining a module path within Artifactory"""
+    """
+    Performs the PIP related aspects of determining a module path within
+    Artifactory.
+    """
 
     def __init__(self):
         self.pip_index_url = PipPackagePathFinder._get_pip_index_url()
@@ -25,11 +28,14 @@ class PipPackagePathFinder(object):
     def _get_pip_index_url():
         pip_config_parser = ConfigOptionParser(name='daf_fruit_dist')
         try:
-            return dict(pip_config_parser.get_config_section('global'))['index-url']
+            return dict(
+                pip_config_parser.get_config_section('global'))['index-url']
+
         except KeyError:
             raise KeyError(
-                'The "index-url" option was not specified under the [global] section within any of the following '
-                'files: {}'.format(pip_config_parser.get_config_files()))
+                'The "index-url" option was not specified under the [global] '
+                'section within any of the following files: {}'.format(
+                    pip_config_parser.get_config_files()))
 
     def _determine_pip_tail(self, pkg_name, pkg_version):
         """This stuff is only coming from pip.ini."""
@@ -43,10 +49,12 @@ class PipPackagePathFinder(object):
         return pip_tail
 
     def determine_file_path(self, pkg_name, pkg_version):
-        """Determines path portion of python module URL used by PIP to download module earlier.
+        """
+        Determines path portion of python module URL used by PIP to
+        download module earlier.
 
-        This method uses the PIP tooling to determine the download URL which corresponds to a given python
-        package name and version.
+        This method uses the PIP tooling to determine the download URL
+        which corresponds to a given python package name and version.
         """
         pip_tail = self._determine_pip_tail(pkg_name, pkg_version)
 
@@ -65,8 +73,8 @@ def _get_package_name_alternatives(req_str):
 
 def _requirement_finder(finder, req_str):
     """
-    First try to find the given requirement. If that fails, try several alternatives. If they all fail, raise
-    the first exception caught.
+    First try to find the given requirement. If that fails, try several
+    alternatives. If they all fail, raise the first exception caught.
     """
     err = None
 

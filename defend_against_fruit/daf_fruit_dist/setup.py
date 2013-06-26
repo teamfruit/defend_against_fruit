@@ -25,8 +25,8 @@ setup(
             "artifactory_upload = daf_fruit_dist.commands.artifactory_upload:"
             "artifactory_upload",
             "freeze = daf_fruit_dist.commands.freeze:freeze",
-            "module_generator = daf_fruit_dist.commands.module_generator_command:"
-            "ModuleGeneratorCommand",
+            "module_generator = daf_fruit_dist.commands."
+            "module_generator_command:ModuleGeneratorCommand",
             ]},
     setup_requires=['nose>=1.2.1'],
     install_requires=['requests>=1.1.0', 'pkginfo>=1.0b2'],

@@ -12,24 +12,33 @@ class PromotionRequest(object):
                  scopes=None,
                  properties=None,
                  fail_fast=True):
+
         """Construct a PromotionRequest data container.
 
         :param status: new build status (any string, e.g. "staged")
-        :param comment: An optional comment describing the reason for promotion.
-        :param ci_user: The user that invoked promotion from the CI server
-        :param timestamp: ISO8601 formated time the promotion command was sent do Artifactory.
-        :param dry_run: Run without executing any operation in Artifactory but get the results to
-            check if the operation can succeed.
-        :param target_repo: Optional repository to move or copy the build's artifacts
-            and/or dependencies (e.g.:"libs-release-local")
-        :param copy: Whether to copy instead of move, when a target repository is specified.
+        :param comment: An optional comment describing the reason for
+            promotion.
+        :param ci_user: The user that invoked promotion from the CI
+            server.
+        :param timestamp: ISO8601 formated time the promotion command
+            was sent to Artifactory.
+        :param dry_run: Run without executing any operation in
+            Artifactory but get the results to check if the operation
+            can succeed.
+        :param target_repo: Optional repository to move or copy the
+            build's artifacts and/or dependencies
+            (e.g.:"libs-release-local")
+        :param copy: Whether to copy instead of move, when a target
+            repository is specified.
         :param artifacts: Whether to move/copy the build's artifacts.
-        :param dependencies: Whether to move/copy the build's dependencies.
-        :param scopes: An array of dependency scopes to include when "dependencies" is true.
-            (e.g.["compile", "runtime"])
-        :param properties: A list of properties to attach to the build's artifacts
-            (regardless if "target_repo" is used).
-        :param fail_fast: Fail and abort the operation upon receiving an error.
+        :param dependencies: Whether to move/copy the build's
+            dependencies.
+        :param scopes: An array of dependency scopes to include when
+            "dependencies" is true. (e.g.["compile", "runtime"])
+        :param properties: A list of properties to attach to the build's
+            artifacts (regardless if "target_repo" is used).
+        :param fail_fast: Fail and abort the operation upon receiving an
+            error.
         """
 
         super(PromotionRequest, self).__init__()
@@ -150,7 +159,9 @@ class PromotionRequest(object):
         return hash(self.__attrs())
 
     def __eq__(self, other):
-        return isinstance(other, PromotionRequest) and self.__attrs() == other.__attrs()
+        return (
+            isinstance(other, PromotionRequest) and
+            self.__attrs() == other.__attrs())
 
     def __ne__(self, other):
         return not self == other

@@ -65,9 +65,20 @@ class BuildInfo(object):
 
     @classmethod
     def from_json_data(cls, json_data):
-        agent = nested_object_from_json_data(json_data, 'agent', Agent.from_json_data)
-        build_agent = nested_object_from_json_data(json_data, 'buildAgent', Agent.from_json_data)
-        build_retention = nested_object_from_json_data(json_data, 'buildRetention', BuildRetention.from_json_data)
+        agent = nested_object_from_json_data(
+            json_data,
+            'agent',
+            Agent.from_json_data)
+
+        build_agent = nested_object_from_json_data(
+            json_data,
+            'buildAgent',
+            Agent.from_json_data)
+
+        build_retention = nested_object_from_json_data(
+            json_data,
+            'buildRetention',
+            BuildRetention.from_json_data)
 
         builder = BuildInfo.Builder(
             version=json_data['version'],
@@ -102,7 +113,8 @@ class BuildInfo(object):
                 "started": self.started,
                 "durationMillis": self.duration_millis,
                 "artifactoryPrincipal": self.artifactory_principal,
-                "buildRetention": getattr(self.build_retention, 'as_json_data', None),
+                "buildRetention": getattr(
+                    self.build_retention, 'as_json_data', None),
                 "modules": modules_as_json_data}
 
     def __attrs(self):
@@ -122,7 +134,9 @@ class BuildInfo(object):
         return hash(self.__attrs())
 
     def __eq__(self, other):
-        return isinstance(other, BuildInfo) and self.__attrs() == other.__attrs()
+        return (
+            isinstance(other, BuildInfo) and
+            self.__attrs() == other.__attrs())
 
     def __ne__(self, other):
         return not self == other

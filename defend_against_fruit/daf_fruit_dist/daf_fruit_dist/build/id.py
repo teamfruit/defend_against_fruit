@@ -31,7 +31,10 @@ class Id(object):
 
     @property
     def as_json_data(self):
-        id_as_string = ":".join((self.group_id, self.artifact_id, self.version))
+        id_as_string = ":".join((
+            self.group_id,
+            self.artifact_id,
+            self.version))
         return id_as_string
 
     def __attrs(self):

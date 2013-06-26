@@ -5,7 +5,8 @@ import logging
 import os
 import sys
 import textwrap
-from daf_fruit_dist.artifactory.artifactory_rest import publish_build_info, build_promote
+from daf_fruit_dist.artifactory.artifactory_rest import publish_build_info
+from daf_fruit_dist.artifactory.artifactory_rest import build_promote
 from daf_fruit_dist.build.agent import Agent
 from daf_fruit_dist.build.build_info import BuildInfo
 from daf_fruit_dist.build.build_retention import BuildRetention
@@ -23,7 +24,9 @@ _OPTION_NAMES = {
 
 
 def execute():
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s')
 
     args = _parse_args()
     sub_command_function = args.func
@@ -56,7 +59,8 @@ def _parse_and_validate(parser, command_line_args):
             msg = (
                 "Error: {key_name} value must be provided.\n\n"
                 "This can be done using the relevant command line argument\n"
-                "or the corresponding environment variable: {env_name}\n\n{usage}".format(
+                "or the corresponding environment variable: "
+                "{env_name}\n\n{usage}".format(
                     key_name=key_name,
                     env_name=_OPTION_NAMES[key_name],
                     usage=parser.format_usage()))
@@ -73,29 +77,68 @@ def _parse_and_validate(parser, command_line_args):
 
 def _parse_args(args=None):
     parser = argparse.ArgumentParser(
-        description='Integration test utility for testing Artifactory Rest API calls.',
+        description=(
+            'Integration test utility for testing Artifactory Rest API '
+            'calls.'),
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.epilog = textwrap.dedent('''
             To see options for a subcommand:
                 > python {} <subcommand> --help'''.format(parser.prog))
 
-    parser.add_argument('--username', help='Artifactory username')
-    parser.add_argument('--password', help='Artifactory password')
-    parser.add_argument('--base-url', help='Artifactory base URL')
-    parser.add_argument('--ignore-cert-errors', action='store_true', default=False, help='Verify certificate')
+    parser.add_argument(
+        '--username',
+        help='Artifactory username')
 
-    subparsers = parser.add_subparsers(title="subcommands", description="Various subcommands for testing")
+    parser.add_argument(
+        '--password',
+        help='Artifactory password')
+
+    parser.add_argument(
+        '--base-url',
+        help='Artifactory base URL')
+
+    parser.add_argument(
+        '--ignore-cert-errors',
+        action='store_true',
+        default=False,
+        help='Verify certificate')
+
+    subparsers = parser.add_subparsers(
+        title="subcommands",
+        description="Various subcommands for testing")
 
     parser_build_info = subparsers.add_parser('build-info')
-    parser_build_info.add_argument('--name', action='store', required=True, help="name to use in build-info")
-    parser_build_info.add_argument('--number', action='store', required=True, help="build number to use in build-info")
+
+    parser_build_info.add_argument(
+        '--name',
+        action='store',
+        required=True,
+        help="name to use in build-info")
+
+    parser_build_info.add_argument(
+        '--number',
+        action='store',
+        required=True,
+        help="build number to use in build-info")
+
     parser_build_info.set_defaults(func=_build_info)
 
     #build_name, build_number
     parser_build_info = subparsers.add_parser('build-promote')
-    parser_build_info.add_argument('--name', action='store', required=True, help="build name to promote")
-    parser_build_info.add_argument('--number', action='store', required=True, help="build number to promote")
+
+    parser_build_info.add_argument(
+        '--name',
+        action='store',
+        required=True,
+        help="build name to promote")
+
+    parser_build_info.add_argument(
+        '--number',
+        action='store',
+        required=True,
+        help="build number to promote")
+
     parser_build_info.set_defaults(func=_build_promote)
 
     return _parse_and_validate(parser=parser, command_line_args=args)
@@ -104,6 +147,7 @@ def _parse_args(args=None):
 def _build_promote(args):
     my_build_number = args.number
     my_build_name = args.name
+
     promotion_request = PromotionRequest(
         status="monkey",
         comment="promoted using integration test tool",
@@ -115,7 +159,11 @@ def _build_promote(args):
             "components": ["c1", "c3", "c14"],
             "release-name": ["fb3-ga"]}
     )
-    promotion_request_as_text = json.dumps(promotion_request.as_json_data, sort_keys=True, indent=4)
+    promotion_request_as_text = json.dumps(
+        promotion_request.as_json_data,
+        sort_keys=True,
+        indent=4)
+
     logging.debug(promotion_request_as_text)
 
     promotion_response_json = build_promote(
@@ -139,8 +187,11 @@ def _build_info(args):
         version="2.2.2",
         name=my_build_name,
         number=my_build_number,
-        type='GENERIC',  # Looks like valid values are "GENERIC", "MAVEN", "ANT", "IVY" and "GRADLE"
-        started="2013-03-21T10:49:01.143-0500",  # Looks like time format is very specific
+        # Looks like valid values are "GENERIC", "MAVEN", "ANT", "IVY" and
+        # "GRADLE".
+        type='GENERIC',
+        # Looks like time format is very specific
+        started="2013-03-21T10:49:01.143-0500",
         duration_millis=10000,
         artifactory_principal="dude",
         agent=Agent(name="defend_against_fruit", version="5.2"),
@@ -148,9 +199,13 @@ def _build_info(args):
         build_retention=BuildRetention(
             count=-1,
             delete_build_artifacts=False,
-            build_numbers_not_to_be_discarded=[111, 999])  # Is this for TeamCity "pinned" builds?
+            # Is this for TeamCity "pinned" builds?
+            build_numbers_not_to_be_discarded=[111, 999])
     )
-    module_builder = Module.Builder(id=Id(group_id="python", artifact_id="daf_fruit_dist", version="1.2.15"))
+    module_builder = Module.Builder(id=Id(
+        group_id="python",
+        artifact_id="daf_fruit_dist",
+        version="1.2.15"))
     module_builder.add_artifact(
         type=PYTHON_SDIST,
         name="daf_fruit_dist-1.2.15.tar.gz",
@@ -169,9 +224,7 @@ def _build_info(args):
         md5="735e3f1ce8b07e70ee1b742a8a53585a")
 
     bi_builder.add_module(module_builder.build())
-
     build_info = bi_builder.build()
-
     logging.debug(build_info_to_text(build_info))
 
     publish_build_info(

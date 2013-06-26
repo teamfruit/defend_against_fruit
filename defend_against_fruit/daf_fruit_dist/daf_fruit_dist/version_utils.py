@@ -9,15 +9,24 @@ class VersionUtils(object):
     def __init__(self, basedir=None):
         super(VersionUtils, self).__init__()
         self.basedir = basedir or os.getcwd()
-        self.version_file = os.path.join(os.path.abspath(basedir), 'version.txt')
+        self.version_file = os.path.join(
+            os.path.abspath(basedir), 'version.txt')
 
-    def write_version(self, major_version=None, minor_version=None, build_number=None):
+    def write_version(
+            self,
+            major_version=None,
+            minor_version=None,
+            build_number=None):
+
         if major_version is None:
-            major_version = os.environ.get('MAJOR_VERSION', _DEFAULT_MAJOR_REVISION)
+            major_version = os.environ.get(
+                'MAJOR_VERSION', _DEFAULT_MAJOR_REVISION)
         if minor_version is None:
-            minor_version = os.environ.get('MINOR_VERSION', _DEFAULT_MINOR_REVISION)
+            minor_version = os.environ.get(
+                'MINOR_VERSION', _DEFAULT_MINOR_REVISION)
         if build_number is None:
-            build_number = os.environ.get('BUILD_NUMBER', _DEFAULT_BUILD_NUMBER)
+            build_number = os.environ.get(
+                'BUILD_NUMBER', _DEFAULT_BUILD_NUMBER)
 
         version = '{}.{}.{}'.format(major_version, minor_version, build_number)
 
@@ -30,4 +39,7 @@ class VersionUtils(object):
         return self._read_text(self.version_file)
 
     def _read_text(self, filename):
-        return unicode(open(filename).read()) if os.path.exists(filename) else None
+        return (
+            unicode(open(filename).read())
+            if os.path.exists(filename)
+            else None)

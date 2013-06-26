@@ -30,14 +30,18 @@ def collect_env_info():
 
     if env_errors:
         msg = os.linesep.join(
-            ['The following environment variables should be set but are not:'] +
-            map(lambda vars_tried: ('    => ' + ' or '.join(map(repr, vars_tried))), env_errors))
+            ['The following environment variables should be set but are not:']
+            + map(lambda vars_tried: (
+                '    => ' + ' or '.join(map(repr, vars_tried))), env_errors))
         raise RuntimeError(msg)
 
     build_number = int(build_number)
-    build_agent_name = _get_environ('BUILD_AGENT_NAME', default='TeamCity')
-    build_agent_version = _get_environ(('BUILD_AGENT_VERSION', 'TEAMCITY_VERSION'))
-    build_version = '{}.{}.{}'.format(major_version, minor_version, build_number)
+    build_agent_name = _get_environ(
+        'BUILD_AGENT_NAME', default='TeamCity')
+    build_agent_version = _get_environ(
+        ('BUILD_AGENT_VERSION', 'TEAMCITY_VERSION'))
+    build_version = '{}.{}.{}'.format(
+        major_version, minor_version, build_number)
 
     return EnvInfo(
         build_name=build_name,
@@ -49,7 +53,9 @@ def collect_env_info():
 
 def merge_module_info_files(build_info_files, env_info):
     if env_info.build_agent_name and env_info.build_agent_version:
-        build_agent = Agent(name=env_info.build_agent_name, version=env_info.build_agent_version)
+        build_agent = Agent(
+            name=env_info.build_agent_name,
+            version=env_info.build_agent_version)
     else:
         build_agent = None
 
@@ -69,13 +75,19 @@ def merge_module_info_files(build_info_files, env_info):
     if build_info_files:
         for build_info_file in build_info_files:
             with open(build_info_file, 'r') as f:
-                bi_builder.add_module(Module.from_json_data(json.loads(f.read())))
+                bi_builder.add_module(Module.from_json_data(
+                    json.loads(f.read())))
 
     return bi_builder.build()
 
 
-def get_deploy_artifact_function(repo_details, env_info=None, verify_cert=True):
-    # Create a short-hand version of the deploy function with the just the repo details filled out.
+def get_deploy_artifact_function(
+        repo_details,
+        env_info=None,
+        verify_cert=True):
+
+    # Create a short-hand version of the deploy function with the just
+    # the repo details filled out.
     if env_info is None:
         attributes = None
     else:
@@ -104,9 +116,13 @@ def get_deploy_build_info_function(repo_details, verify_cert=True):
 
 def get_deploy_functions(env_info=None, verify_cert=True):
     repo_details = repo_detail.read_options()
+
     return (
-        get_deploy_artifact_function(repo_details, env_info=env_info, verify_cert=verify_cert),
-        get_deploy_build_info_function(repo_details, verify_cert=verify_cert))
+        get_deploy_artifact_function(
+            repo_details, env_info=env_info, verify_cert=verify_cert),
+
+        get_deploy_build_info_function(
+            repo_details, verify_cert=verify_cert))
 
 
 def build_info_to_text(build_info):

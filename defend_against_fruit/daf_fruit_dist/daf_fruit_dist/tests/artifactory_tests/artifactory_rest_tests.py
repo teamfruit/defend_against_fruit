@@ -13,12 +13,14 @@ nose_file_path = "{}/nose/nose-1.2.1.tar.gz".format(PYTHON_GROUP_ID)
 @attr("integration")
 def test_typical_usage():
     repo_details = read_options()
-    found_checksums = determine_checksums(username=repo_details.username,
-                                          password=repo_details.password,
-                                          repo_base_url=repo_details.repo_base_url,
-                                          repo_pull_id=repo_details.repo_pull_id,
-                                          file_path=nose_file_path,
-                                          verify_cert=False)
+
+    found_checksums = determine_checksums(
+        username=repo_details.username,
+        password=repo_details.password,
+        repo_base_url=repo_details.repo_base_url,
+        repo_pull_id=repo_details.repo_pull_id,
+        file_path=nose_file_path,
+        verify_cert=False)
 
     eq_(found_checksums.sha1, "02cc3ffdd7a1ce92cbee388c4a9e939a79f66ba5")
     eq_(found_checksums.md5, "735e3f1ce8b07e70ee1b742a8a53585a")
