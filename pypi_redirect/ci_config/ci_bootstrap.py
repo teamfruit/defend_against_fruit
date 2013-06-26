@@ -18,4 +18,3 @@ if not os.path.exists(destination):
     urlretrieve(bootstrap_url, destination)
 
 execfile(destination)
-
