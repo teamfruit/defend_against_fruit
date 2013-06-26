@@ -65,6 +65,7 @@ def get_options_from_config_file_and_args(config_file_path=None,options_override
     parser.add_argument('--pypi_push_username', default=None)
     parser.add_argument('--pypi_push_password', default=None)
     parser.add_argument('--pypi_push_repo_id', default=None)
+    parser.add_argument('--pypi_push_no_cert_verify', default=False)
     parser.add_argument('--pypi_server_base', default=None)
     parser.add_argument('--virtualenv_path', default='./_python_virtualenv')
     parser.add_argument('--virtualenv_version', default=None)
@@ -428,6 +429,10 @@ def _write_pydistutils_cfg(home_dir, options):
         repo_pull_id={repo_pull_id}
         username={username}
         password={password}
+        no_cert_verify={no_cert_verify}
+        
+        [module_generator]
+        no-cert-verify={no_cert_verify}        
         ''').strip()
 
     pydistutils_cfg_contents = pydistutils_cfg.format(
@@ -438,7 +443,8 @@ def _write_pydistutils_cfg(home_dir, options):
         repo_push_id=options.pypi_push_repo_id,
         repo_pull_id=options.pypi_pull_repo_id,
         username=options.pypi_push_username,
-        password=options.pypi_push_password)
+        password=options.pypi_push_password,
+        no_cert_verify='1' if options.pypi_push_no_cert_verify else '0')
 
     _write_config_file(home_dir=home_dir, home_file_name='pydistutils.cfg', contents=pydistutils_cfg_contents)
     

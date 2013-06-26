@@ -45,6 +45,10 @@
 # to the PyPi repo.  Not needed if not pushing any python packages.
 # pypi_push_credentials = {'username': 'admin', 'password': 'password'}
 
+# Whether to skip checking the validity of server certificate when 
+# pushing via SSL / HTTPS.
+#pypi_push_no_cert_verify = True
+
 # Path (can be relative to the config file) where the virtual environment
 # will be created.
 # If not given, the virtual environment will be created in a sudirectory

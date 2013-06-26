@@ -234,7 +234,7 @@ def main(config_file_path=None, options_overrides={}, verbose=True):
             version = options.virtualenv_util_version
             url = '/'.join([pypi_server,
                            VIRTUALENV_UTIL_PACKAGE_NAME,
-                           '{}-{}{}'.format(VIRTUALENV_UTIL_PACKAGE_NAME, virtualenv_util_version, VIRTUALENV_UTIL_PACKAGE_FILE_EXTENSION)])
+                           '{}-{}{}'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version, VIRTUALENV_UTIL_PACKAGE_FILE_EXTENSION)])
 
         if verbose:    
             print('Downloading {} package version {}...'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version))
