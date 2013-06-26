@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 # Work-around for a bug: http://bugs.python.org/msg170215
 try:
-    import multiprocessing
+    import multiprocessing  # flake8: noqa
 except ImportError:
     pass
 

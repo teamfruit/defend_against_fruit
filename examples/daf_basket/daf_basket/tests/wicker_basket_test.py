@@ -10,4 +10,5 @@ def feed_snow_white_test():
 def feed_dwarfs_test():
     my_basket = WickerBasket()
     did_the_dwarfs_sing_in_the_hall = my_basket.feed_dwarfs()
-    assert did_the_dwarfs_sing_in_the_hall, "The dwarfs didn't sing in the hall"
+    assert did_the_dwarfs_sing_in_the_hall, \
+        "The dwarfs didn't sing in the hall"
