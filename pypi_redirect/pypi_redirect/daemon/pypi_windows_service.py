@@ -18,8 +18,8 @@ class PyPIWindowsService(win32serviceutil.ServiceFramework):
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         cherrypy.engine.exit()
-        
-        self.ReportServiceStatus(win32service.SERVICE_STOPPED) 
+
+        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
         # very important for use with py2exe
         # otherwise the Service Controller never knows that it is stopped !
 
