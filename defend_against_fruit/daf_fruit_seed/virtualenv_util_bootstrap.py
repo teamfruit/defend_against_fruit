@@ -17,7 +17,7 @@ import shutil
 
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONFIG_FILE_PATH = os.path.join(ROOT_PATH, 'virtualenv_util.cfg')
-VIRTUALENV_UTIL_PACKAGE_NAME = 'fruit_orchard'
+VIRTUALENV_UTIL_PACKAGE_NAME = 'daf_fruit_orchard'
 VIRTUALENV_UTIL_PACKAGE_FILE_EXTENSION = '.tar.gz'
 VIRTUALENV_UTIL_MODULE_NAME = 'virtualenv_util.py'
 
