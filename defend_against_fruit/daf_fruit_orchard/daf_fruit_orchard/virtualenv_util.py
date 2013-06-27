@@ -12,7 +12,7 @@ from textwrap import dedent
 
 VIRTUALENV_PACKAGE_NAME = 'virtualenv'
 VIRTUALENV_BOOTSTRAP_NAME = 'virtualenv-bootstrap'
-VIRTUALENV_UTIL_PACKAGE_NAME = 'fruit_orchard'
+VIRTUALENV_UTIL_PACKAGE_NAME = 'daf_fruit_orchard'
 
 if sys.version_info >= (3, 0):
     # noinspection PyUnresolvedReferences
