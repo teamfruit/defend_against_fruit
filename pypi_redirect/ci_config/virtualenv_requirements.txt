@@ -1,4 +1,4 @@
-daf_fruit_dist>=1.2.91
+daf_fruit_dist>=1.2.96
 teamcity-nose>=1.2
 
 # These would ideally *only* be listed in setup.py. For whatever reason, the
