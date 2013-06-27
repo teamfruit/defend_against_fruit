@@ -406,6 +406,9 @@ def _stage_virtualenv(options, install_virtualenv=True):
         # copy the virtualenv package file to that directory if it is not
         # already there.
         for directory in [options.download_dir, options.download_cache_dir]:
+            if directory is None:
+                directory = ''
+
             virtualenv_tar_exists = os.path.isfile(
                 os.path.join(directory, virtualenv_tar_filename))
 

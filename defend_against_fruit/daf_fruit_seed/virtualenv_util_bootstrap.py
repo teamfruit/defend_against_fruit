@@ -245,6 +245,9 @@ def main(config_file_path=None, options_overrides=None, verbose=True):
     # ourselves there.  That way, the bootstrap script will be available in
     # the download dir for offline use.
     for directory in [options.download_dir, options.download_cache_dir]:
+        if directory is None:
+            directory = ''
+
         if directory:
             try:
                 shutil.copy2(__file__, directory)
