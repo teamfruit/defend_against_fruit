@@ -31,12 +31,15 @@ else:
 
 
 def version():
-    return open(
-        os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            '..',
-            'version.txt'),
-        'r').read()
+    try:
+        return open(
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                '..',
+                'version.txt'),
+            'r').read()
+    except IOError:
+        return None
 
 
 def get_python_version_string():
@@ -572,8 +575,9 @@ def _get_implicit_versions_string(options):
     s += '# __{}=={}\n'.format(
         options.virtualenv_package_name,
         options.virtualenv_version)
-    s += '# __{}=={}\n'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version())
-
+    v = version()
+    if v:
+        s += '# __{}=={}\n'.format(VIRTUALENV_UTIL_PACKAGE_NAME, v)
     return s
 
 
@@ -867,18 +871,22 @@ def main(config_file_path=None, options_overrides=None):
 
         # Always install a copy of ourselves, even if no one asked for us.
         if not options.noupdate:
-            p = subprocess.Popen(
-                '"{}" install {} {}=={}'.format(piptool,
-                                                _get_pip_install_args(options),
-                                                VIRTUALENV_UTIL_PACKAGE_NAME,
-                                                version()))
-            p.wait()
+            v = version()
 
-            if p.returncode != 0:
-                raise RuntimeError(
-                    'Failed to install package {} via pip, check pip output '
-                    'for more information'.format(
-                        VIRTUALENV_UTIL_PACKAGE_NAME))
+            if v:
+                p = subprocess.Popen(
+                    '"{}" install {} {}=={}'.format(
+                        piptool,
+                        _get_pip_install_args(options),
+                        VIRTUALENV_UTIL_PACKAGE_NAME,
+                        version()))
+                p.wait()
+
+                if p.returncode != 0:
+                    raise RuntimeError(
+                        'Failed to install package {} via pip, check pip '
+                        'output for more information'.format(
+                            VIRTUALENV_UTIL_PACKAGE_NAME))
 
         # If requirements were specified as a list of requirements
         # specifiers separated by commas, install each package individually.
