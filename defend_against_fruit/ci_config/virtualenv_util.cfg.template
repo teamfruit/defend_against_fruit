@@ -1,7 +1,7 @@
 [global]
 # This allows a fixed version of the virtualenv_util package to be used
 # (loaded by the bootstrap script).
-#virtualenv_util_version=1.2.55
+#virtualenv_util_version=1.2.85
 
 # Use this optional parameter to specify a path to the virtualenv_util 
 # package locally, versus grabbing.
@@ -40,7 +40,7 @@ pypi_pull_repo_id = pypi-teamfruit
 pypi_pull_server = %(pypi_server_base)s/%(pypi_pull_repo_id)s/python
 
 # Location (URL) of 'seed' bootstrap script.
-#bootstrap_url = %(pypi_pull_server)s/fruit_seed/virtualenv_util_bootstrap-1.2.55.py
+#bootstrap_url = %(pypi_pull_server)s/daf_fruit_seed/virtualenv_util_bootstrap-1.2.85.py
 
 # Credentials (usually username / password) to be used when pushing
 # to the PyPi repo.  Not needed if not pushing any python packages.

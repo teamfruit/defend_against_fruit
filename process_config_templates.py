@@ -6,12 +6,17 @@ import sys
 import textwrap
 
 
-_OPTION_NAMES = ('pypi_server_base', 'pypi_push_username', 'pypi_push_password')
+_OPTION_NAMES = (
+    'pypi_server_base',
+    'pypi_push_username',
+    'pypi_push_password',
+)
 
 
 def _slurp_template_file(template_file):
     if not os.path.exists(template_file):
-        raise IOError("config template file: {} doesn't exist".format(template_file))
+        raise IOError(
+            "config template file: {} doesn't exist".format(template_file))
     with open(template_file, 'r') as f:
         whole_template = f.read()
     return whole_template
@@ -41,9 +46,11 @@ def _process_ci_config_dir(relative_ci_config_dir_path, parsed_args):
     template_file_name = "virtualenv_util.cfg.template"
     output_file_name = "virtualenv_util.cfg"
 
-    template_file = os.path.join(base_path, relative_ci_config_dir_path, template_file_name)
+    template_file = os.path.join(
+        base_path, relative_ci_config_dir_path, template_file_name)
 
-    output_file = os.path.join(base_path, relative_ci_config_dir_path, output_file_name)
+    output_file = os.path.join(
+        base_path, relative_ci_config_dir_path, output_file_name)
 
     _process_template(
         template_file=template_file,
@@ -75,7 +82,8 @@ def _log_values(parsed_args):
     for option in ('pypi_server_base', 'pypi_push_username'):
         log_option_value(option)
 
-    #Avoid printing password in plain text, but still log if there is a None value
+    # Avoid printing password in plain text, but still log if there is a
+    # None value
     password_value = getattr(parsed_args, 'pypi_push_password', None)
     if password_value:
         print_option_value('pypi_push_password', 'XXXXX')
@@ -97,7 +105,8 @@ def _parse_and_validate(parser, command_line_args):
             msg = (
                 "Error: {key_name} value must be provided.\n\n"
                 "This can be done using the relevant command line argument\n"
-                "or the corresponding environment variable: {env_name}\n\n{usage}".format(
+                "or the corresponding environment variable: {env_name}\n\n"
+                "{usage}".format(
                     key_name=key_name,
                     env_name=key_name.upper(),
                     usage=parser.format_usage()))
@@ -129,9 +138,9 @@ def _parse_args(args=None):
            would be:
 
            Step 1: python process_config_templates.py \\
-                      --pypi_server_base=http://myartifactory.defendagainstfruit.com:8081/artifactory \\
-                      --pypi_push_username=admin \\
-                      --pypi_push_password=password
+                   --pypi_server_base=http://artif.acme.com:8081/artifactory \\
+                   --pypi_push_username=admin \\
+                   --pypi_push_password=password
 
            Step 2: ci --publish'''))
 
@@ -141,11 +150,13 @@ def _parse_args(args=None):
 
     parser.add_argument(
         '--pypi-push-username',
-        help='Username to be used when pushing to the Artifactory hosted PyPI server.')
+        help='Username to be used when pushing to the Artifactory hosted '
+             'PyPI server.')
 
     parser.add_argument(
         '--pypi-push-password',
-        help='Password to be used when pushing to the Artifactory hosted PyPI server.')
+        help='Password to be used when pushing to the Artifactory hosted '
+             'PyPI server.')
 
     parsed_args = _parse_and_validate(parser=parser, command_line_args=args)
 
@@ -157,19 +168,27 @@ def run(command_line_args):
     _log_values(parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='defend_against_fruit/ci_config',
+        relative_ci_config_dir_path=os.path.join(
+            'defend_against_fruit', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='python_garden/basket/ci_config',
+        relative_ci_config_dir_path=os.path.join(
+            'examples', 'daf_basket', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='python_garden/fruit/ci_config',
+        relative_ci_config_dir_path=os.path.join(
+            'examples', 'daf_fruit', 'ci_config'),
         parsed_args=parsed_args)
 
     _process_ci_config_dir(
-        relative_ci_config_dir_path='python_garden/pest/ci_config',
+        relative_ci_config_dir_path=os.path.join(
+            'examples', 'daf_pest', 'ci_config'),
+        parsed_args=parsed_args)
+
+    _process_ci_config_dir(
+        relative_ci_config_dir_path=os.path.join('pypi_redirect', 'ci_config'),
         parsed_args=parsed_args)
 
 

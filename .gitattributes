@@ -1,5 +1,5 @@
 * text=auto
 
-# The files matched by the pattern below are used as example binary artifacts by the fruit_dist tests.
+# The files matched by the pattern below are used as example binary artifacts by the daf_fruit_dist tests.
 # Allowing git to change line endings alters the MD5 and SHA1 checksums, and must therefore be avoided.
 pointy-stick-*.txt text eol=crlf

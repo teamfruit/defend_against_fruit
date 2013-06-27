@@ -1,0 +1,63 @@
+[global]
+# This allows a fixed version of the virtualenv_util package to be used
+# (loaded by the bootstrap script).
+virtualenv_util_version=1.2.85
+
+# Use this optional parameter to specify a path to the virtualenv_util 
+# package locally, versus grabbing.
+# Good to use when developing / changing virtualenv_util.
+# virtualenv_util_path = ../../virtualenv_util
+
+# Version of Python to use in the virtual environment.
+python_version=2.7.3
+
+# Version of virtualenv to be used when creating virtual environment.
+virtualenv_version=1.9.1
+
+# Base URL of the Artifactory repository manager.
+# An Artifactory instance typically maintains multiple local repositories
+# and also exposes a REST webservice API. This is the base URL common
+# to all of these. A typical value would be:
+# http://myartifactory.acme.com:8081/artifactory
+pypi_server_base = ${pypi_server_base}
+
+# Repository within Artifactory to which build artifacts should be deployed.
+# In a continuous deployment strategy this is typically the first
+# level repository. The specified Artifactory repository should be configured
+# to use a "python" prefixed PyPI "simple" layout.
+# A typical value would be: pypi-teamfruit-l-local
+pypi_push_repo_id = pypi-teamfruit-1-local
+
+# Repository within Artifactory used when searching and installing artifacts.
+# These are frequently what Artifactory refers to as virtual repositories.
+# A typical value would be: pypi-teamfruit
+pypi_pull_repo_id = pypi-teamfruit
+
+# Location (URL) of PyPi repo where the packages needed should be pulled for
+# installation. When using Artifactory as a PyPI server you will typically
+# need to add a "python" suffix to account for the artificial "python" group
+# required by the custom PyPI Artifactory layout.
+pypi_pull_server = %(pypi_server_base)s/%(pypi_pull_repo_id)s/python
+
+# Location (URL) of 'seed' bootstrap script.
+bootstrap_url = %(pypi_pull_server)s/daf_fruit_seed/virtualenv_util_bootstrap-1.2.85.py
+
+# Credentials (usually username / password) to be used when pushing
+# to the PyPi repo.  Not needed if not pushing any python packages.
+pypi_push_username = ${pypi_push_username}
+pypi_push_password = ${pypi_push_password}
+
+# Path (can be relative to the config file) where the virtual environment
+# will be created.
+# If not given, the virtual environment will be created in the current
+# directory.  
+virtualenv_path = ../_python_virtualenv
+
+# Optional requirements file.  This file will be used to populate the 
+# virtual environment.
+requirements_file = ./virtualenv_requirements.txt
+
+# Optional installed list file.  This file will be created after the 
+# virtual environment is created, and contains the list of all Python
+# packages installed.
+#installed_list_file = ../tools/installed_tools.txt
