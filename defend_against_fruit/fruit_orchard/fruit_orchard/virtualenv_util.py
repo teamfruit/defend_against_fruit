@@ -230,9 +230,18 @@ def do_virtualenv_install(options):
         # Use the bootstrap virtualenv to create the "real" virtualenv in the
         # view at the right location. 
         # We have to be careful to get the python version correct this time.  
-        subprocess.check_call([
+        try:
+            subprocess.check_call([
             os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'),
-            '--distribute', options.virtualenv_path])
+            '--distribute', options.virtualenv_path], shell=True)
+        except subprocess.CalledProcessError, e:
+            print 'Real VM create return code', e.returncode
+            #print e.output                   
+            raise  
+        #print output           
+        #subprocess.check_call([
+        #    os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'),
+        #    '--distribute', options.virtualenv_path])
     finally:
         if temp_dir:
             # Clean up the temp. virtual environment. 
@@ -335,11 +344,18 @@ def _stage_virtualenv(options, install_virtualenv=True):
         # current python executable we are using plus the virtualenv stuff we 
         # unpacked.
         if install_virtualenv:
-            subprocess.check_call([
-                sys.executable, 
-                os.path.join(unpacked_tar_directory, 'virtualenv.py'), 
-                '--distribute', 
-                bootstrap_vm_directory])
+            try:
+                subprocess.check_call([
+                    sys.executable, 
+                    os.path.join(unpacked_tar_directory, 'virtualenv.py'), 
+                    '--distribute', 
+                    bootstrap_vm_directory], shell=True)
+            except subprocess.CalledProcessError, e:
+                print 'Bootstrap VM create return code', e.returncode
+                #print e.output                   
+                raise 
+                
+            #print output    
                 
             # Get the right options to pass to pip to install virtualenv
             # to the bootstrap environment.  Again, this is necessary because
@@ -708,14 +724,14 @@ def main(config_file_path=None, options_overrides={}):
             
         # Always install a copy of ourselves, even if no one asked for us.
         if not options.noupdate:
-            p = subprocess.Popen(
+            returncode = subprocess.call(
                 '"{}" install {} {}=={}'.format(piptool,
                                                 _get_pip_install_args(options),
                                                 VIRTUALENV_UTIL_PACKAGE_NAME,
-                                                version()))                                                       
-            p.wait()                                                       
+                                                version()),
+                shell = True)                                                       
         
-            if p.returncode != 0:
+            if returncode != 0:
                 raise RuntimeError('Failed to install package {} via pip, check pip output for more information'.format(VIRTUALENV_UTIL_PACKAGE_NAME)) 
              
 
@@ -723,25 +739,25 @@ def main(config_file_path=None, options_overrides={}):
         # specifiers separated by commas, install each package individually.
         if options.requirement_specifiers and not options.noupdate:
             for requirement in options.requirement_specifiers.split(','):
-                p = subprocess.Popen(
+                returncode = subprocess.call(
                     '"{}" install {} {}'.format(piptool,
                                                 _get_pip_install_args(options),
-                                                requirement))                                                       
-                p.wait()                                                       
+                                                requirement),
+                    shell = True)                                                       
                 
-                if p.returncode != 0:
+                if returncode != 0:
                     raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirement {})'.format(requirement)) 
             
         # Run pip to install / update the required
         # tool packages listed in the requirements.txt file.
         if options.requirements_file and not options.noupdate:
-            p = subprocess.Popen(
+            returncode = subprocess.call(
                 '"{}" install {} -r {}'.format(piptool,
                                                _get_pip_install_args(options),
-                                               options.requirements_file))
-            p.wait()
+                                               options.requirements_file),
+                shell = True)
 
-            if p.returncode != 0:
+            if returncode != 0:
                 raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirements file {})'.format(options.requirements_file))                               
 
         if options.installed_list_file:
@@ -759,21 +775,28 @@ def main(config_file_path=None, options_overrides={}):
         if options.helper_scripts:
             _create_ve_helper_scripts(options)        
 
+    if options.sitepkg_install:
+        scripts_dir = os.path.join(sys.prefix, 'Scripts') 
+    else:
+        scripts_dir = os.path.join(options.virtualenv_path, 'Scripts')
+        
+    if options.run is not None or options.script is not None:
+    
+        # Add Scripts directory to the path so those executables are
+        # available to the item being executed.
+        os.environ["PATH"] = scripts_dir + os.pathsep + os.environ["PATH"]
+        
     if options.run is not None:
         if options.sitepkg_install:
             python_executable = sys.executable 
         else:
-            python_executable = os.path.join(options.virtualenv_path, 'Scripts', 'python.exe')
+            python_executable = os.path.join(scripts_dir, 'python.exe')
     
         # Run the file using the Python executable in the virtualenv.
-        p = subprocess.Popen(python_executable + ' ' + options.run)
+        p = subprocess.Popen(python_executable + ' ' + options.run, shell=True)
         sys.exit(p.wait())
     elif options.script is not None:
-        if options.sitepkg_install:
-            scripts_dir = os.path.join(sys.prefix, 'Scripts') 
-        else:
-            scripts_dir = os.path.join(options.virtualenv_path, 'Scripts')
-    
+   
         # Run a script, assumed to be located in the Scripts directory.                   
         # Note that the script name cannot have any spaces using the logic 
         # below.             
