@@ -536,7 +536,7 @@ def _write_config_file(home_dir, home_file_name, contents):
         f.write(contents)
         
 def _get_pip_install_args(options):
-    args = [options.pip_install_args]        
+    args = shlex.split(options.pip_install_args, posix=False)
 
     if options.download_cache_dir:
         args += ['--download-cache="{}"'.format(options.download_cache_dir)]
