@@ -2,6 +2,7 @@ import argparse
 import glob
 import os
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -55,6 +56,7 @@ def get_options_from_config_file_and_args(config_file_path=None,options_override
     parser.add_argument('--run', default=None)
     parser.add_argument('--script', default=None)
     parser.add_argument('--noupdate', '--venoupdate', '-`', action='store_true')
+    parser.add_argument('--quiet', action='store_true')    
     parser.add_argument('--requirements_file', '-r', default=None)
     parser.add_argument('--requirement_specifiers', default=None)
     parser.add_argument('--installed_list_file', default=None)
@@ -226,22 +228,21 @@ def do_virtualenv_install(options):
         # Stage a virtual environment that will perform the real install
         temp_dir = _stage_virtualenv(options)
         bootstrap_vm_dir = os.path.join(temp_dir, VIRTUALENV_BOOTSTRAP_NAME)
+        arguments = [os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'), '--distribute', options.virtualenv_path]
         
         # Use the bootstrap virtualenv to create the "real" virtualenv in the
         # view at the right location. 
         # We have to be careful to get the python version correct this time.  
         try:
-            subprocess.check_call([
-            os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'),
-            '--distribute', options.virtualenv_path], shell=True)
+            if options.quiet:
+                subprocess.check_output(arguments, shell=True)
+            else:
+                subprocess.check_call(arguments, shell=True)
         except subprocess.CalledProcessError, e:
-            print 'Real VM create return code', e.returncode
-            #print e.output                   
+            if options.quiet:
+                print e.output                   
+            print 'Real virtual environment create fail, return code', e.returncode
             raise  
-        #print output           
-        #subprocess.check_call([
-        #    os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'),
-        #    '--distribute', options.virtualenv_path])
     finally:
         if temp_dir:
             # Clean up the temp. virtual environment. 
@@ -309,6 +310,8 @@ def _stage_virtualenv(options, install_virtualenv=True):
     '''
     # Create a temporary directory to put the virtual env. in.
     temp_dir = tempfile.mkdtemp()
+    temp_dir = os.path.join(os.getcwd(), '_bootstrap_ve')
+    os.makedirs(temp_dir)
     try:
         # Was a fixed virtualenv version specified?  If not, we need to check
         # the PyPI server for the latest version.    
@@ -344,18 +347,20 @@ def _stage_virtualenv(options, install_virtualenv=True):
         # current python executable we are using plus the virtualenv stuff we 
         # unpacked.
         if install_virtualenv:
-            try:
-                subprocess.check_call([
-                    sys.executable, 
+            arguments = [sys.executable, 
                     os.path.join(unpacked_tar_directory, 'virtualenv.py'), 
                     '--distribute', 
-                    bootstrap_vm_directory], shell=True)
+                    bootstrap_vm_directory]            
+            try:
+                if options.quiet:
+                    subprocess.check_output(arguments, shell=True)
+                else:
+                    subprocess.check_call(arguments, shell=True)                
             except subprocess.CalledProcessError, e:
-                print 'Bootstrap VM create return code', e.returncode
-                #print e.output                   
+                if options.quiet:
+                    print e.output                   
+                print 'Bootstrap VM create failed, return code', e.returncode
                 raise 
-                
-            #print output    
                 
             # Get the right options to pass to pip to install virtualenv
             # to the bootstrap environment.  Again, this is necessary because
@@ -390,7 +395,6 @@ def _cleanup_virtualenv(temp_dir):
     _stage_virtualenv().
     '''
     print('Cleaning up bootstrap environment')
-    #print '****', temp_dir
     shutil.rmtree(temp_dir, ignore_errors=False, onerror=handle_remove_readonly)
         
 
@@ -532,19 +536,18 @@ def _write_config_file(home_dir, home_file_name, contents):
         f.write(contents)
         
 def _get_pip_install_args(options):
-    args = options.pip_install_args        
+    args = [options.pip_install_args]        
 
     if options.download_cache_dir:
-        args += ' --download-cache="{}"'.format(options.download_cache_dir)
+        args += ['--download-cache="{}"'.format(options.download_cache_dir)]
 
     if options.download_dir:
-        args += ' --download="{}"'.format(options.download_dir)
+        args += ['--download="{}"'.format(options.download_dir)]
     
     return args
     
 def _fix_download_cache_dir_filenames(options):
     for item in os.listdir(options.download_cache_dir):
-        #print item
         if os.path.isfile(os.path.join(options.download_cache_dir, item)) and '%2F' in item:
             shutil.move(os.path.join(options.download_cache_dir, item),
                         os.path.join(options.download_cache_dir, item.split('%2F')[-1]))                                    
@@ -657,7 +660,7 @@ def _handle_run_script_nested_arguments(options):
     # Can pass in some arguments as an argument inside of --run or --script
     # and they will have the same effect as passing them directly to this
     # script.
-    look_for_args = {'--veclean': 'clean', '--venoupdate': 'noupdate', '-`': 'noupdate'}    
+    look_for_args = {'--veclean': 'clean', '--venoupdate': 'noupdate', '-`': 'noupdate', '--quiet': 'quiet'}    
     
     run_script_args = options.run if options.run is not None else options.script
     
@@ -675,6 +678,31 @@ def _handle_run_script_nested_arguments(options):
         if options.script:
             options.script = options.script.replace(look_for_arg, '')
 
+def _exec_pip(options, pip_args = [], install = True, capture_output = False):
+    # Choose the pip tool location based on if this is a virtualenv install
+    # or a site-packages install            
+    if options.sitepkg_install:
+        piptool = os.path.join(sys.prefix, 'Scripts', 'pip')            
+    else:
+        piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
+
+    if install:
+        pip_args = ['install'] + _get_pip_install_args(options) + pip_args           
+
+    try:
+        if options.quiet or capture_output:
+            output = subprocess.check_output([piptool] + pip_args, shell=True)
+        else:
+            output = subprocess.check_call([piptool] + pip_args, shell=True)
+
+    except subprocess.CalledProcessError, e:
+        if options.quiet or capture_output:        
+            print e.output
+        print 'Error executing pip command {}, return code {}'.format(pip_args, e.returncode)
+        raise
+
+    if capture_output:
+        return output
 
 def main(config_file_path=None, options_overrides={}):
     options = get_options_from_config_file_and_args(config_file_path, options_overrides)
@@ -722,48 +750,27 @@ def main(config_file_path=None, options_overrides={}):
         else:
             piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
             
-        # Always install a copy of ourselves, even if no one asked for us.
-        if not options.noupdate:
-            returncode = subprocess.call(
-                '"{}" install {} {}=={}'.format(piptool,
-                                                _get_pip_install_args(options),
-                                                VIRTUALENV_UTIL_PACKAGE_NAME,
-                                                version()),
-                shell = True)                                                       
         
-            if returncode != 0:
-                raise RuntimeError('Failed to install package {} via pip, check pip output for more information'.format(VIRTUALENV_UTIL_PACKAGE_NAME)) 
-             
+        if not options.noupdate:
 
-        # If requirements were specified as a list of requirements
-        # specifiers separated by commas, install each package individually.
-        if options.requirement_specifiers and not options.noupdate:
-            for requirement in options.requirement_specifiers.split(','):
-                returncode = subprocess.call(
-                    '"{}" install {} {}'.format(piptool,
-                                                _get_pip_install_args(options),
-                                                requirement),
-                    shell = True)                                                       
-                
-                if returncode != 0:
-                    raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirement {})'.format(requirement)) 
+            # Always install a copy of ourselves, even if no one asked for us.
+            _exec_pip(options, ['{}=={}'.format(VIRTUALENV_UTIL_PACKAGE_NAME, version())])
+        
+            # If requirements were specified as a list of requirements
+            # specifiers separated by commas, install each package individually.
+            if options.requirement_specifiers:
+                for requirement in options.requirement_specifiers.split(','):
+                    _exec_pip(options, [requirement])
             
-        # Run pip to install / update the required
-        # tool packages listed in the requirements.txt file.
-        if options.requirements_file and not options.noupdate:
-            returncode = subprocess.call(
-                '"{}" install {} -r {}'.format(piptool,
-                                               _get_pip_install_args(options),
-                                               options.requirements_file),
-                shell = True)
-
-            if returncode != 0:
-                raise RuntimeError('Failed to install required package(s) via pip, check pip output for more information (requirements file {})'.format(options.requirements_file))                               
+            # Run pip to install / update the required
+            # tool packages listed in the requirements.txt file.
+            if options.requirements_file:
+                _exec_pip(options, ['-r', options.requirements_file])                    
 
         if options.installed_list_file:
         
-            # Output the list of installed tools to a text file. 
-            output = subprocess.check_output([piptool, 'freeze'])
+            # Output the list of installed tools to a text file.
+            output = _exec_pip(options, ['freeze'], install=False, capture_output=True)
             f = open(options.installed_list_file, 'w')
             f.write(_get_implicit_versions_string(options))
             f.write(output)
@@ -791,20 +798,36 @@ def main(config_file_path=None, options_overrides={}):
             python_executable = sys.executable 
         else:
             python_executable = os.path.join(scripts_dir, 'python.exe')
-    
-        # Run the file using the Python executable in the virtualenv.
-        p = subprocess.Popen(python_executable + ' ' + options.run, shell=True)
-        sys.exit(p.wait())
+
+        args = [python_executable] + shlex.split(options.run, posix=False)
+
+        sys.stdout.flush()
+        sys.stderr.flush()
+        returncode = subprocess.call(args, stdout=sys.stdout, stderr=sys.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()           
+
+        sys.exit(returncode)
+        
     elif options.script is not None:
-   
+
         # Run a script, assumed to be located in the Scripts directory.                   
         # Note that the script name cannot have any spaces using the logic 
-        # below.             
+        # below.          
+        args = [os.path.join(scripts_dir, options.script.split()[0])]
         if len(options.script.split()) > 1:
-            p = subprocess.Popen(os.path.join(scripts_dir, options.script.split()[0]) + ' ' + ' '.join(options.script.split()[1:]))
-        else:            
-            p = subprocess.Popen(os.path.join(scripts_dir, options.script))
-        sys.exit(p.wait())
+            args += shlex.split(options.script.split(None, 1)[1], posix=False)
+
+        # Note: Passing sys.stdout, sys.stderr explicitly to avoid issues with
+        # missing output in some cases when output is redirected.
+        # See http://comments.gmane.org/gmane.comp.python.buildbot.devel/2369.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        returncode = subprocess.call(args, stdout=sys.stdout, stderr=sys.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
+   
+        sys.exit(returncode)
 
 
 if __name__ == '__main__':
