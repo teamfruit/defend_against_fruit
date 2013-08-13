@@ -2,6 +2,7 @@ import argparse
 import glob
 import os
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -77,6 +78,8 @@ def get_options_from_config_file_and_args(
     parser.add_argument(
         '--noupdate', '--venoupdate', '-`', action='store_true')
     parser.add_argument(
+        '--quiet', action='store_true')
+    parser.add_argument(
         '--requirements_file', '-r', default=None)
     parser.add_argument(
         '--requirement_specifiers', default=None)
@@ -117,7 +120,6 @@ def get_options_from_config_file_and_args(
         '--sitepkg_install', type=int, default=0)
     parser.add_argument(
         '--helper_scripts', action='store_true', default=False)
-
     parser.set_defaults(**config_file_global_settings)
 
     if options_overrides.get('dont_parse_argv', False):
@@ -165,13 +167,11 @@ def update_path_options(options):
                     os.path.abspath(os.path.join(root_path, value)))
             else:
                 # absolute path
-                setattr(
-                    options,
-                    path_option,
-                    os.path.abspath(value))
-
+                setattr(options, path_option, os.path.abspath(value))
 
 # TODO: Is this function ever called?
+
+
 def parse_requirements_file(requirements_file_path, options):
     if not os.path.isfile(requirements_file_path):
         raise RuntimeError(
@@ -255,8 +255,6 @@ def do_sitepkg_install(options):
 
         # Use the bootstrap virtualenv to install distribute and pip to
         # site-packages. We expect those packages to be in virtualenv_support.
-
-        # tool_path = os.path.join(temp_dir, 'virtualenv_support')
         distribute_src = glob.glob(os.path.join(
             temp_dir, 'virtualenv-*/virtualenv_support/distribute-*.tar.gz'))
         pip_src = glob.glob(os.path.join(
@@ -277,8 +275,9 @@ def do_sitepkg_install(options):
 
 
 def do_virtualenv_install(options):
-    print('Creating new virtual environment at {}...'.format(
-        options.virtualenv_path))
+    print(
+        'Creating new virtual environment at {}...'.format(
+            options.virtualenv_path))
 
     # Remove any old virtualenv that may be sitting in the target virtualenv
     # directory.
@@ -294,13 +293,28 @@ def do_virtualenv_install(options):
         # Stage a virtual environment that will perform the real install
         temp_dir = _stage_virtualenv(options)
         bootstrap_vm_dir = os.path.join(temp_dir, VIRTUALENV_BOOTSTRAP_NAME)
+        arguments = [
+            os.path.join(
+                bootstrap_vm_dir,
+                'Scripts',
+                'virtualenv'),
+            '--distribute',
+            options.virtualenv_path]
 
         # Use the bootstrap virtualenv to create the "real" virtualenv in the
         # view at the right location.
         # We have to be careful to get the python version correct this time.
-        subprocess.check_call([
-            os.path.join(bootstrap_vm_dir, 'Scripts', 'virtualenv'),
-            '--distribute', options.virtualenv_path])
+        try:
+            if options.quiet:
+                subprocess.check_output(arguments, shell=True)
+            else:
+                subprocess.check_call(arguments, shell=True)
+        except subprocess.CalledProcessError as e:
+            if options.quiet:
+                print e.output
+            print ('Real virtual environment create fail, '
+                   'return code {}'.format(e.returncode))
+            raise
     finally:
         if temp_dir:
             # Clean up the temp. virtual environment.
@@ -308,9 +322,7 @@ def do_virtualenv_install(options):
 
 
 def _get_newest_package_version_and_url(
-        pypi_server,
-        package_name,
-        package_extension='.tar.gz'):
+        pypi_server, package_name, package_extension='.tar.gz'):
     '''Utility function that searches the pypi_server specified for
     the latest version of the package with the name specified.
     Will return the version of the newest package found and the
@@ -434,11 +446,20 @@ def _stage_virtualenv(options, install_virtualenv=True):
         # current python executable we are using plus the virtualenv stuff we
         # unpacked.
         if install_virtualenv:
-            subprocess.check_call([
-                sys.executable,
-                os.path.join(unpacked_tar_directory, 'virtualenv.py'),
-                '--distribute',
-                bootstrap_vm_directory])
+            arguments = [sys.executable,
+                         os.path.join(unpacked_tar_directory, 'virtualenv.py'),
+                         '--distribute',
+                         bootstrap_vm_directory]
+            try:
+                if options.quiet:
+                    subprocess.check_output(arguments, shell=True)
+                else:
+                    subprocess.check_call(arguments, shell=True)
+            except subprocess.CalledProcessError as e:
+                if options.quiet:
+                    print e.output
+                print 'Bootstrap VM create failed, return code', e.returncode
+                raise
 
             # Get the right options to pass to pip to install virtualenv
             # to the bootstrap environment.  Again, this is necessary because
@@ -448,6 +469,7 @@ def _stage_virtualenv(options, install_virtualenv=True):
                     '--no-index',
                     '--find-links',
                     options.pypi_pull_server]
+
             else:
                 install_options = [
                     '-i',
@@ -483,7 +505,7 @@ def _cleanup_virtualenv(temp_dir):
     _stage_virtualenv().
     '''
     print('Cleaning up bootstrap environment')
-    #print '****', temp_dir
+
     shutil.rmtree(
         temp_dir,
         ignore_errors=False,
@@ -502,8 +524,8 @@ def _write_pip_config(home_dir, options):
         additional_global_options = 'no_index=true\nfind_links={}'.format(
             options.pypi_pull_server)
 
-    ################################
-    #Create pip.ini
+    #
+    # Create pip.ini
     pip_ini = dedent('''
         # This file was auto-generated by "{virtualenv_util}" from
         # "{virtualenv_util_cfg}".
@@ -531,8 +553,8 @@ def _write_pip_config(home_dir, options):
 def _write_pydistutils_cfg(home_dir, options):
     virtualenv_util = os.path.basename(__file__)
 
-    ################################
-    #Create pydistutils.cfg
+    #
+    # Create pydistutils.cfg
     pydistutils_cfg = dedent('''
         # This file was auto-generated by "{virtualenv_util}" from
         # "{virtualenv_util_cfg}".
@@ -582,10 +604,9 @@ def _get_implicit_versions_string(options):
 
 
 def _write_version_file(home_dir, options):
-    """
-    Write out some package version information to a text file in the
-    home directory.
-    """
+    '''Write out some package version information to a text file in the home
+    directory.'''
+
     home_versions_file_path = os.path.join(home_dir, 'virtualenv_versions.txt')
     f = open(home_versions_file_path, 'w')
     f.write(_get_implicit_versions_string(options))
@@ -593,10 +614,9 @@ def _write_version_file(home_dir, options):
 
 
 def _create_env_file(home_dir, environment_variables):
-    """
-    Create a file containing all the environment variable settings that
-    should be made each time the virtual environment is used
-    """
+    '''Create a file containing all the environment variable settings that
+    should be made each time the virtual environment is used'''
+
     environment_variables['HOME'] = home_dir
 
     home_env_file_path = os.path.join(home_dir, '.env')
@@ -611,12 +631,10 @@ def _populate_home_dir(options):
     if options.sitepkg_install:
         # For a sitepkg install, we need to write the config files in the
         # the correct system locations.
-
         # TODO: We could write to the user's %HOME% env variable, but it's
         # TODO: a pain to get it to persist. We've done this in ratools using
         # TODO: the _winreg and win32gui libraries, but win32gui is a third
         # TODO: party module that I'm not sure we want to try and install
-
         _write_pip_config(os.path.expanduser('~'), options)
         _write_pydistutils_cfg(os.path.join(
             sys.prefix, 'Lib/distutils/pydistutils.cfg'), options)
@@ -644,26 +662,25 @@ def _write_config_file(home_dir, home_file_name, contents):
     # TODO: Don't we want to overwrite this file? For now, I changed it do
     # overwrite. Not sure if/how we want to persist user changes, unless we
     # just write parts of the file we're concerned about.
-    #if not os.path.isfile(home_file_path):
+    # if not os.path.isfile(home_file_path):
     with open(home_file_path, 'w') as f:
         f.write(contents)
 
 
 def _get_pip_install_args(options):
-    args = options.pip_install_args
+    args = shlex.split(options.pip_install_args, posix=False)
 
     if options.download_cache_dir:
-        args += ' --download-cache="{}"'.format(options.download_cache_dir)
+        args += ['--download-cache="{}"'.format(options.download_cache_dir)]
 
     if options.download_dir:
-        args += ' --download="{}"'.format(options.download_dir)
+        args += ['--download="{}"'.format(options.download_dir)]
 
     return args
 
 
 def _fix_download_cache_dir_filenames(options):
     for item in os.listdir(options.download_cache_dir):
-        #print item
         file_exists = os.path.isfile(
             os.path.join(options.download_cache_dir, item))
 
@@ -770,19 +787,19 @@ def make_platform_helpers():
     if os.name == 'nt':
         f = open(os.path.join(home_dir, 'virtualenv_util_activate.bat'), 'w')
         for new_env_var in new_env_vars.keys():
-            f.write('set {}={}\n'.format(
-                new_env_var.upper(), new_env_vars[new_env_var]))
+            f.write(
+                'set {}={}\n'.format(new_env_var.upper(),
+                                     new_env_vars[new_env_var]))
         f.close()
 
         f = open(os.path.join(home_dir, 'virtualenv_util_deactivate.bat'), 'w')
         for original_env_var in original_env_vars.keys():
             if original_env_vars[original_env_var] is None:
-                f.write('set {}=\n'.format(
-                    original_env_var.upper()))
+                f.write('set {}=\n'.format(original_env_var.upper()))
             else:
-                f.write('set {}={}\n'.format(
-                    original_env_var.upper(),
-                    original_env_vars[original_env_var]))
+                f.write(
+                    'set {}={}\n'.format(original_env_var.upper(),
+                                         original_env_vars[original_env_var]))
         f.close()
 
 
@@ -795,7 +812,8 @@ def _handle_run_script_nested_arguments(options):
     look_for_args = {
         '--veclean': 'clean',
         '--venoupdate': 'noupdate',
-        '-`': 'noupdate'}
+        '-`': 'noupdate',
+        '--quiet': 'quiet'}
 
     run_script_args = (
         options.run
@@ -817,13 +835,40 @@ def _handle_run_script_nested_arguments(options):
             options.script = options.script.replace(look_for_arg, '')
 
 
+def _exec_pip(options, pip_args=[], install=True, capture_output=False):
+    # Choose the pip tool location based on if this is a virtualenv install
+    # or a site-packages install
+    if options.sitepkg_install:
+        piptool = os.path.join(sys.prefix, 'Scripts', 'pip')
+    else:
+        piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
+
+    if install:
+        pip_args = ['install'] + _get_pip_install_args(options) + pip_args
+
+    try:
+        if options.quiet or capture_output:
+            output = subprocess.check_output([piptool] + pip_args, shell=True)
+        else:
+            output = subprocess.check_call([piptool] + pip_args, shell=True)
+
+    except subprocess.CalledProcessError as e:
+        if options.quiet or capture_output:
+            print e.output
+        print('Error executing pip command {}, '
+              'return code {}'.format(pip_args, e.returncode))
+        raise
+
+    if capture_output:
+        return output
+
+
 def main(config_file_path=None, options_overrides=None):
     if options_overrides is None:
         options_overrides = {}
 
     options = get_options_from_config_file_and_args(
-        config_file_path,
-        options_overrides)
+        config_file_path, options_overrides)
 
     # Special case of "nested" arguments when doing a run or script.
     _handle_run_script_nested_arguments(options)
@@ -862,68 +907,33 @@ def main(config_file_path=None, options_overrides=None):
         if not options.sitepkg_install:
             read_and_update_environment_variables(options)
 
-        # Choose the pip tool location based on if this is a virtualenv install
-        # or a site-packages install
-        if options.sitepkg_install:
-            piptool = os.path.join(sys.prefix, 'Scripts', 'pip')
-        else:
-            piptool = os.path.join(options.virtualenv_path, 'Scripts', 'pip')
-
-        # Always install a copy of ourselves, even if no one asked for us.
         if not options.noupdate:
-            v = version()
 
-            if v:
-                p = subprocess.Popen(
-                    '"{}" install {} {}=={}'.format(
-                        piptool,
-                        _get_pip_install_args(options),
-                        VIRTUALENV_UTIL_PACKAGE_NAME,
-                        version()))
-                p.wait()
+            # Always install a copy of ourselves, even if no one asked for us.
+            _exec_pip(
+                options, ['{}=={}'.format(VIRTUALENV_UTIL_PACKAGE_NAME,
+                          version())])
 
-                if p.returncode != 0:
-                    raise RuntimeError(
-                        'Failed to install package {} via pip, check pip '
-                        'output for more information'.format(
-                            VIRTUALENV_UTIL_PACKAGE_NAME))
+            # If requirements were specified as a list of requirements
+            # specifiers separated by commas, install each package
+            # individually.
+            if options.requirement_specifiers:
+                for requirement in options.requirement_specifiers.split(','):
+                    _exec_pip(options, [requirement])
 
-        # If requirements were specified as a list of requirements
-        # specifiers separated by commas, install each package individually.
-        if options.requirement_specifiers and not options.noupdate:
-            for requirement in options.requirement_specifiers.split(','):
-                p = subprocess.Popen(
-                    '"{}" install {} {}'.format(piptool,
-                                                _get_pip_install_args(options),
-                                                requirement))
-                p.wait()
-
-                if p.returncode != 0:
-                    raise RuntimeError(
-                        'Failed to install required package(s) via pip, '
-                        'check pip output for more information '
-                        '(requirement {})'.format(requirement))
-
-        # Run pip to install / update the required
-        # tool packages listed in the requirements.txt file.
-        if options.requirements_file and not options.noupdate:
-            p = subprocess.Popen(
-                '"{}" install {} -r {}'.format(
-                    piptool,
-                    _get_pip_install_args(options),
-                    options.requirements_file))
-            p.wait()
-
-            if p.returncode != 0:
-                raise RuntimeError(
-                    'Failed to install required package(s) via pip, check pip '
-                    'output for more information '
-                    '(requirements file {})'.format(options.requirements_file))
+            # Run pip to install / update the required
+            # tool packages listed in the requirements.txt file.
+            if options.requirements_file:
+                _exec_pip(options, ['-r', options.requirements_file])
 
         if options.installed_list_file:
 
             # Output the list of installed tools to a text file.
-            output = subprocess.check_output([piptool, 'freeze'])
+            output = _exec_pip(
+                options,
+                ['freeze'],
+                install=False,
+                capture_output=True)
             f = open(options.installed_list_file, 'w')
             f.write(_get_implicit_versions_string(options))
             f.write(output)
@@ -935,35 +945,58 @@ def main(config_file_path=None, options_overrides=None):
         if options.helper_scripts:
             _create_ve_helper_scripts(options)
 
+    if options.sitepkg_install:
+        scripts_dir = os.path.join(sys.prefix, 'Scripts')
+    else:
+        scripts_dir = os.path.join(options.virtualenv_path, 'Scripts')
+
+    if options.run is not None or options.script is not None:
+
+        # Add Scripts directory to the path so those executables are
+        # available to the item being executed.
+        os.environ["PATH"] = scripts_dir + os.pathsep + os.environ["PATH"]
+
     if options.run is not None:
         if options.sitepkg_install:
             python_executable = sys.executable
         else:
-            python_executable = os.path.join(
-                options.virtualenv_path,
-                'Scripts',
-                'python.exe')
+            python_executable = os.path.join(scripts_dir, 'python.exe')
 
-        # Run the file using the Python executable in the virtualenv.
-        p = subprocess.Popen(python_executable + ' ' + options.run)
-        sys.exit(p.wait())
+        args = [python_executable] + shlex.split(options.run, posix=False)
+
+        sys.stdout.flush()
+        sys.stderr.flush()
+        returncode = subprocess.call(
+            args,
+            stdout=sys.stdout,
+            stderr=sys.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        sys.exit(returncode)
+
     elif options.script is not None:
-        if options.sitepkg_install:
-            scripts_dir = os.path.join(sys.prefix, 'Scripts')
-        else:
-            scripts_dir = os.path.join(options.virtualenv_path, 'Scripts')
 
         # Run a script, assumed to be located in the Scripts directory.
         # Note that the script name cannot have any spaces using the logic
         # below.
+        args = [os.path.join(scripts_dir, options.script.split()[0])]
         if len(options.script.split()) > 1:
-            p = subprocess.Popen(
-                os.path.join(scripts_dir, options.script.split()[0])
-                + ' '
-                + ' '.join(options.script.split()[1:]))
-        else:
-            p = subprocess.Popen(os.path.join(scripts_dir, options.script))
-        sys.exit(p.wait())
+            args += shlex.split(options.script.split(None, 1)[1], posix=False)
+
+        # Note: Passing sys.stdout, sys.stderr explicitly to avoid issues with
+        # missing output in some cases when output is redirected.
+        # See http://comments.gmane.org/gmane.comp.python.buildbot.devel/2369.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        returncode = subprocess.call(
+            args,
+            stdout=sys.stdout,
+            stderr=sys.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        sys.exit(returncode)
 
 
 if __name__ == '__main__':
