@@ -138,9 +138,9 @@ def _parse_args(args=None):
            would be:
 
            Step 1: python process_config_templates.py \\
-                   --pypi-server-base=http://artif.acme.com:8081/artifactory \\
-                   --pypi-push-username=admin \\
-                   --pypi-push-password=password
+                   --pypi_server_base=http://artif.acme.com:8081/artifactory \\
+                   --pypi_push_username=admin \\
+                   --pypi_push_password=password
 
            Step 2: ci --publish'''))
 
