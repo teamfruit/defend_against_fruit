@@ -14,7 +14,7 @@ python_version=2.7.3
 # Version of virtualenv to be used when creating virtual environment.
 virtualenv_version=1.9.1
 
-# Base URL of the Artifactory repository manager.
+# Base URL of the 'Artifactory repository manager'.
 # An Artifactory instance typically maintains multiple local repositories
 # and also exposes a REST webservice API. This is the base URL common
 # to all of these. A typical value would be:
